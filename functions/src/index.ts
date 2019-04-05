@@ -1,15 +1,12 @@
-const functions = require('firebase-functions')
-const admin = require('firebase-admin')
-const voucher_codes = require('voucher-code-generator')
+import * as functions from 'firebase-functions'
+import * as admin from 'firebase-admin'
 const _ = require('lodash')
-const sgMail = require('@sendgrid/mail')
 
 admin.initializeApp()
 
 // Constants
 
 const roles = ['user', 'admin', 'manager', 'support']
-const SENDGRID_API_KEY = functions.config().sendgriddev.api
 const FROM_EMAIL = 'no-reply@newly.com'
 const actionCodeSettings = {
 	// URL you want to redirect back to. The domain (www.example.com) for
@@ -18,7 +15,10 @@ const actionCodeSettings = {
 	// This must be true for email link sign-in.
 	handleCodeInApp: true,
 }
-sgMail.setApiKey(SENDGRID_API_KEY)
+
+const RAKUTEN = {
+	TOKEN: functions.config().rakuten.token,
+}
 
 /**
  * Function to add custom claims for each user. (Note: Custom claims caches for 1 hour and then gets changed)
@@ -30,6 +30,9 @@ async function grantRole(userId: string, role: string) {
 }
 
 async function sendgridEmail(email, templateId, dynamic_template_data) {
+	const sgMail = require('@sendgrid/mail')
+	const SENDGRID_API_KEY = functions.config().sendgriddev.api
+	sgMail.setApiKey(SENDGRID_API_KEY)
 	try {
 		const message = {
 			to: email,
@@ -47,6 +50,7 @@ async function sendgridEmail(email, templateId, dynamic_template_data) {
 // Perform new user creation side effects
 
 exports.onCreateUser = functions.auth.user().onCreate(async user => {
+	const voucher_codes = require('voucher-code-generator')
 	const name = user.displayName
 		? user.displayName.toLowerCase().split(' ')
 		: null
@@ -85,7 +89,7 @@ exports.onCreateUser = functions.auth.user().onCreate(async user => {
 		.set({
 			uid: user.uid,
 			firstName: name ? name[0] : null,
-			lastName: name ? (name[name.len] === undefined ? '' : name[1]) : null,
+			lastName: name ? (name[name.length] === undefined ? '' : name[1]) : null,
 			email: user.email,
 			avatarURL: user.photoURL,
 			referralCode: referralCode,
@@ -158,7 +162,7 @@ exports.setRole = functions.https.onCall(async (data, context) => {
 	// Checking that user is admin
 	const adminRecord = await admin.auth().getUser(context.auth.uid)
 
-	const isAdmin = adminRecord.customClaims.role === 'admin'
+	const isAdmin = (adminRecord.customClaims as any).role === 'admin'
 
 	if (!isAdmin) {
 		// Throwing an HttpsError so that the client gets the error details.
@@ -197,4 +201,79 @@ exports.setRole = functions.https.onCall(async (data, context) => {
 
 	// Set claims on firebase user and firestore user
 	return grantRole(userId, role)
+})
+
+/**
+ * Rakuten Services
+ * 1. Fetch Stores  - (This will be done using Admin and only admin and relevant roles can call this function)
+ * 2. Fetch Reports and Update it - (This will be done using cron jobs)
+ */
+
+/**
+ * Only admin and manager is allowed to execute this function.
+ * Fetches the store from Affiliate Partners
+ */
+
+const getRakutenStores = async () => {
+	const axios = require('axios')
+	const Papa = require('papaparse')
+
+	try {
+		const URL = `http://reportws.linksynergy.com/downloadreport.php?token=${
+			RAKUTEN.TOKEN
+		}&reportid=13`
+		const response = await axios.get(URL)
+		const result = Papa.parse(response.data, {
+			header: true,
+			dynamicTyping: true,
+		})
+		console.log(result.data[0])
+		result.data.pop()
+		return result.data
+	} catch (error) {
+		console.log('error in getting affiliate partner details: ', error)
+		throw new functions.https.HttpsError('cancelled', 'Something went wrong!')
+	}
+}
+
+exports.fetchStores = functions.https.onCall(async (data, context) => {
+	// Checking that the user is authenticated.
+	if (!context.auth) {
+		// Throwing an HttpsError so that the client gets the error details.
+		throw new functions.https.HttpsError(
+			'failed-precondition',
+			'The function must be called ' + 'while authenticated.'
+		)
+	}
+
+	//TODO: implement role management and then uncomment below.
+
+	// // Checking that user is admin or manager
+	// const adminRecord = await admin.auth().getUser(context.auth.uid)
+
+	// const isAdmin = (adminRecord.customClaims as any).role === 'admin'
+	// const isManager = (adminRecord.customClaims as any).role === 'manager'
+	// if (!isAdmin || !isManager) {
+	// 	// Throwing an HttpsError so that the client gets the error details.
+	// 	throw new functions.https.HttpsError(
+	// 		'failed-precondition',
+	// 		'The function must be called ' + 'only by an administrator'
+	// 	)
+	// }
+
+	// try {
+	// 	const getAffiliateDetails = await admin
+	// 		.firestore()
+	// 		.collection('affiliatePartners')
+	// 		.doc(data.affid)
+	// 		.get()
+	// } catch (error) {
+	// 	console.log('error: ', error)
+	// 	throw new functions.https.HttpsError(
+	// 		'failed-precondition',
+	// 		'The function must be called ' + 'only by an administrator'
+	// 	)
+	// }
+
+	return getRakutenStores()
 })
