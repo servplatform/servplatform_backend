@@ -526,10 +526,10 @@ exports.makePaypalPayment = functions.https.onCall(async (data, context) => {
 			],
 		}
 
-		const payoutResult = await paypal.payout.create(
+		const r = await paypal.payout.create(
 			create_payout_json,
 			false,
-			async function(error, payout) {
+			async (error, payout) => {
 				if (error) {
 					console.error(
 						'Error making paypal payment',
@@ -543,8 +543,6 @@ exports.makePaypalPayment = functions.https.onCall(async (data, context) => {
 						'Error making payment. Error with paypal'
 					)
 				} else {
-					console.log('Create Single Payout Response')
-					console.log(payout)
 					await payoutRef.set({
 						userId,
 						amount: amount,
@@ -556,10 +554,8 @@ exports.makePaypalPayment = functions.https.onCall(async (data, context) => {
 				}
 			}
 		)
-
-		console.log('PAYOUT RESULT', payoutResult)
-
-		return payoutResult
+		console.log('PAYOUT RESULT', r)
+		return r
 	} catch (error) {
 		console.error(error)
 	}
@@ -584,21 +580,21 @@ exports.newlyPaypalPayoutWebhook = functions.https.onRequest(
 						paymentDataPayload: data,
 						status: 'denied',
 					})
-					response.status(200)
+					response.status(200).end()
 					break
 				case 'PAYMENT.PAYOUTSBATCH.PROCESSING':
 					await payoutRef.update({
 						paymentDataPayload: data,
 						status: 'processing',
 					})
-					response.status(200)
+					response.status(200).end()
 					break
 				case 'PAYMENT.PAYOUTSBATCH.SUCCESS':
 					await payoutRef.update({
 						paymentDataPayload: data,
 						status: 'success',
 					})
-					response.status(200)
+					response.status(200).end()
 					break
 			}
 		} else {
@@ -617,7 +613,7 @@ exports.newlyPaypalPayoutWebhook = functions.https.onRequest(
 						.collection('transactions')
 						.doc()
 						.set(data)
-					response.status(200)
+					response.status(200).end()
 					break
 				case 'PAYMENT.PAYOUTS-ITEM.CANCELED':
 					await payoutRef.update({
@@ -627,7 +623,7 @@ exports.newlyPaypalPayoutWebhook = functions.https.onRequest(
 						.collection('transactions')
 						.doc()
 						.set(data)
-					response.status(200)
+					response.status(200).end()
 					break
 				case 'PAYMENT.PAYOUTS-ITEM.DENIED':
 					await payoutRef.update({
@@ -637,7 +633,7 @@ exports.newlyPaypalPayoutWebhook = functions.https.onRequest(
 						.collection('transactions')
 						.doc()
 						.set(data)
-					response.status(200)
+					response.status(200).end()
 					break
 				case 'PAYMENT.PAYOUTS-ITEM.FAILED':
 					await payoutRef.update({
@@ -647,7 +643,7 @@ exports.newlyPaypalPayoutWebhook = functions.https.onRequest(
 						.collection('transactions')
 						.doc()
 						.set(data)
-					response.status(200)
+					response.status(200).end()
 					break
 				case 'PAYMENT.PAYOUTS-ITEM.HELD':
 					await payoutRef.update({
@@ -657,7 +653,7 @@ exports.newlyPaypalPayoutWebhook = functions.https.onRequest(
 						.collection('transactions')
 						.doc()
 						.set(data)
-					response.status(200)
+					response.status(200).end()
 					break
 				case 'PAYMENT.PAYOUTS-ITEM.REFUNDED':
 					await payoutRef.update({
@@ -667,7 +663,7 @@ exports.newlyPaypalPayoutWebhook = functions.https.onRequest(
 						.collection('transactions')
 						.doc()
 						.set(data)
-					response.status(200)
+					response.status(200).end()
 					break
 				case 'PAYMENT.PAYOUTS-ITEM.RETURNED':
 					await payoutRef.update({
@@ -677,7 +673,7 @@ exports.newlyPaypalPayoutWebhook = functions.https.onRequest(
 						.collection('transactions')
 						.doc()
 						.set(data)
-					response.status(200)
+					response.status(200).end()
 					break
 				case 'PAYMENT.PAYOUTS-ITEM.SUCCEEDED':
 					await payoutRef.update({
@@ -687,7 +683,7 @@ exports.newlyPaypalPayoutWebhook = functions.https.onRequest(
 						.collection('transactions')
 						.doc()
 						.set(data)
-					response.status(200)
+					response.status(200).end()
 					break
 				case 'PAYMENT.PAYOUTS-ITEM.UNCLAIMED':
 					await payoutRef.update({
@@ -716,11 +712,11 @@ exports.newlyPaypalPayoutWebhook = functions.https.onRequest(
 							approvedAmount: approvedAmount - amount,
 						})
 
-					response.status(200)
+					response.status(200).end()
 					break
 			}
 		}
 
-		return response.status(200)
+		return
 	}
 )
