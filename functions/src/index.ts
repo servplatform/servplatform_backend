@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
-const _ = require('lodash')
+import * as _ from 'lodash'
 
 admin.initializeApp()
 
@@ -415,3 +415,320 @@ exports.fetchReports = functions.https.onCall(async (data, context) => {
 	}
 	return reportsBatch.commit()
 })
+
+/**
+ * Paypal Related Functions
+ * A payment function.
+ *  On successfull payment make sure to decrese  the approved amount.
+ */
+
+exports.makePaypalPayment = functions.https.onCall(async (data, context) => {
+	// Checking that the user is authenticated.
+	if (!context.auth) {
+		// Throwing an HttpsError so that the client gets the error details.
+		throw new functions.https.HttpsError(
+			'failed-precondition',
+			'The function must be called ' + 'while authenticated.'
+		)
+	}
+
+	// Make sure this function is only called with admin
+
+	const userId = data.userId
+	const amount = data.amount
+
+	// Fetch users  details
+	try {
+		if (!userId || _.isEmpty(userId) || _.isEmpty(_.trim(userId))) {
+			throw new functions.https.HttpsError(
+				'failed-precondition',
+				'Function must be called with valid user id.'
+			)
+		}
+		if (!amount || !_.isNumber(amount) || (amount < 15 && amount > 99999)) {
+			throw new functions.https.HttpsError(
+				'failed-precondition',
+				'Function must be called with valid amount'
+			)
+		}
+
+		const user = await admin
+			.firestore()
+			.collection('users')
+			.doc(userId)
+			.get()
+
+		if (!user.exists) {
+			throw new functions.https.HttpsError('not-found', 'User not found')
+		}
+
+		const userData = user.data()
+		const paypalDetails = userData.paypalDetails
+		if (!paypalDetails || _.isEmpty(paypalDetails)) {
+			throw new functions.https.HttpsError(
+				'not-found',
+				'User is not registered with paypal'
+			)
+		}
+
+		const wallet = await admin
+			.firestore()
+			.collection('wallets')
+			.doc(userId)
+			.get()
+
+		if (!wallet.exists) {
+			throw new functions.https.HttpsError(
+				'not-found',
+				'User wallet information not found'
+			)
+		}
+
+		const walletData = wallet.data()
+		const approvedAmount = Number(walletData.approvedAmount)
+		if (
+			!approvedAmount ||
+			!_.isNumber(approvedAmount) ||
+			(approvedAmount < 15 && approvedAmount > 99999)
+		) {
+			throw new functions.https.HttpsError(
+				'not-found',
+				'Error in user wallet approved amount. Contact development team.'
+			)
+		}
+
+		if (amount > approvedAmount) {
+			throw new functions.https.HttpsError(
+				'cancelled',
+				'Not sufficient amount available in user wallet'
+			)
+		}
+
+		//Initialize paypal lib
+
+		const paypal = require('paypal-rest-sdk')
+		paypal.configure({
+			mode: 'sandbox', //sandbox or live
+			client_id:
+				'AVI2Ea5pU6MSYUhpUraI7xtldSSHCwO2353baTmJOhuKYp31d7WDwzQ2gFjAjgcFnIHIvDfgtoiBtOFS',
+			client_secret:
+				'EHRybMsEAxLRSb9wpUFfF7WrweKO3y48HY0eDsqQwGEXK_5fOLMhYvOntIvwos1VMhN2NHaX-mnabwNo',
+		})
+
+		const payoutRef = admin
+			.firestore()
+			.collection('payouts')
+			.doc()
+
+		const create_payout_json = {
+			sender_batch_header: {
+				sender_batch_id: payoutRef.id,
+				email_subject: 'You have a payment from newly',
+			},
+			items: [
+				{
+					recipient_type: 'EMAIL',
+					amount: {
+						value: amount,
+						currency: 'USD',
+					},
+					receiver: paypalDetails.email,
+					note: 'Thank you.',
+				},
+			],
+		}
+
+		const r = await paypal.payout.create(
+			create_payout_json,
+			false,
+			async (error, payout) => {
+				if (error) {
+					console.error(
+						'Error making paypal payment',
+						error.response,
+						'For user',
+						userId,
+						userData.email
+					)
+					throw new functions.https.HttpsError(
+						'cancelled',
+						'Error making payment. Error with paypal'
+					)
+				} else {
+					await payoutRef.set({
+						userId,
+						amount: amount,
+						mode: 'paypal',
+						status: 'created',
+						paymentDataPayload: payout,
+					})
+					return payout
+				}
+			}
+		)
+		console.log('PAYOUT RESULT', r)
+		return r
+	} catch (error) {
+		console.error(error)
+	}
+})
+
+exports.newlyPaypalPayoutWebhook = functions.https.onRequest(
+	async (request, response) => {
+		console.log('WEBHOOK EVENT RECEIVED')
+		console.log(request.body)
+		console.log(request.method)
+		const data = request.body
+		if (data.resource.batch_header) {
+			const batchId =
+				data.resource.batch_header.sender_batch_header.sender_batch_id
+			const payoutRef = admin
+				.firestore()
+				.collection('payouts')
+				.doc(batchId)
+			switch (data.event_type) {
+				case 'PAYMENT.PAYOUTSBATCH.DENIED':
+					await payoutRef.update({
+						paymentDataPayload: data,
+						status: 'denied',
+					})
+					response.status(200).end()
+					break
+				case 'PAYMENT.PAYOUTSBATCH.PROCESSING':
+					await payoutRef.update({
+						paymentDataPayload: data,
+						status: 'processing',
+					})
+					response.status(200).end()
+					break
+				case 'PAYMENT.PAYOUTSBATCH.SUCCESS':
+					await payoutRef.update({
+						paymentDataPayload: data,
+						status: 'success',
+					})
+					response.status(200).end()
+					break
+			}
+		} else {
+			const payoutId = data.resource.sender_batch_id
+			const transactionId = data.resource.transaction_id
+			const payoutRef = admin
+				.firestore()
+				.collection('payouts')
+				.doc(payoutId)
+			switch (data.event_type) {
+				case 'PAYMENT.PAYOUTS-ITEM.BLOCKED':
+					await payoutRef.update({
+						status: 'blocked',
+					})
+					await payoutRef
+						.collection('transactions')
+						.doc()
+						.set(data)
+					response.status(200).end()
+					break
+				case 'PAYMENT.PAYOUTS-ITEM.CANCELED':
+					await payoutRef.update({
+						status: 'canceled',
+					})
+					await payoutRef
+						.collection('transactions')
+						.doc()
+						.set(data)
+					response.status(200).end()
+					break
+				case 'PAYMENT.PAYOUTS-ITEM.DENIED':
+					await payoutRef.update({
+						status: 'denied',
+					})
+					await payoutRef
+						.collection('transactions')
+						.doc()
+						.set(data)
+					response.status(200).end()
+					break
+				case 'PAYMENT.PAYOUTS-ITEM.FAILED':
+					await payoutRef.update({
+						status: 'failed',
+					})
+					await payoutRef
+						.collection('transactions')
+						.doc()
+						.set(data)
+					response.status(200).end()
+					break
+				case 'PAYMENT.PAYOUTS-ITEM.HELD':
+					await payoutRef.update({
+						status: 'held',
+					})
+					await payoutRef
+						.collection('transactions')
+						.doc()
+						.set(data)
+					response.status(200).end()
+					break
+				case 'PAYMENT.PAYOUTS-ITEM.REFUNDED':
+					await payoutRef.update({
+						status: 'refunded',
+					})
+					await payoutRef
+						.collection('transactions')
+						.doc()
+						.set(data)
+					response.status(200).end()
+					break
+				case 'PAYMENT.PAYOUTS-ITEM.RETURNED':
+					await payoutRef.update({
+						status: 'returned',
+					})
+					await payoutRef
+						.collection('transactions')
+						.doc()
+						.set(data)
+					response.status(200).end()
+					break
+				case 'PAYMENT.PAYOUTS-ITEM.SUCCEEDED':
+					await payoutRef.update({
+						status: 'success',
+					})
+					await payoutRef
+						.collection('transactions')
+						.doc()
+						.set(data)
+					response.status(200).end()
+					break
+				case 'PAYMENT.PAYOUTS-ITEM.UNCLAIMED':
+					await payoutRef.update({
+						status: 'unclaimed',
+					})
+					await payoutRef
+						.collection('transactions')
+						.doc()
+						.set(data)
+					const amount = Number(data.resource.payout_item.amount.value)
+					const user = await payoutRef.get()
+					const userData = user.data()
+					const userId = userData.userId
+					const wallet = await admin
+						.firestore()
+						.collection('wallets')
+						.doc(userId)
+						.get()
+					const walletData = wallet.data()
+					const approvedAmount = walletData.approvedAmount
+					await admin
+						.firestore()
+						.collection('wallets')
+						.doc(userId)
+						.update({
+							approvedAmount: approvedAmount - amount,
+						})
+
+					response.status(200).end()
+					break
+			}
+		}
+
+		return
+	}
+)
