@@ -247,6 +247,18 @@ exports.setRole = functions.https.onCall(async (data, context) => {
 })
 
 /**
+ * Referral Program
+ * 1. Every user has a referral code.
+ * 2. In referral the data stored will be:
+ *   	a. Documents will be the entry of all the registeration made by referral
+ * 		b. The subcollection called aggregate will have total sign ups through referral
+ * 		c. The subcollection usersAggregate will have total shares made on any platform provided,
+ * 		   referral successful by user, amount earned, referral array holding document id of
+ * 		   referral done.
+ */
+exports.onUpdateUserReferral = functions.firestore
+
+/**
  * Rakuten Services
  * 1. Fetch Stores  - (This will be done using Admin and only admin and relevant roles can call this function)
  * 2. Fetch Reports and Update it - (This will be done using cron jobs)
