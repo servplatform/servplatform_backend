@@ -256,7 +256,71 @@ exports.setRole = functions.https.onCall(async (data, context) => {
  * 		   referral successful by user, amount earned, referral array holding document id of
  * 		   referral done.
  */
-exports.onUpdateUserReferral = functions.firestore
+exports.onCreateReferral = functions.firestore
+	.document('aggregate/referrals/all/{referralId}')
+	.onCreate(async (snap, context) => {
+		const data = snap.data()
+
+		try {
+			const referrerDocs = await admin
+				.firestore()
+				.collection('users')
+				.where('referralCode', '==', data.referredBy)
+				.limit(1)
+				.get()
+			// no such referrer
+			if (referrerDocs.empty) {
+				await snap.ref.update({
+					referredBy: null,
+				})
+				return
+			}
+			// if referrer present
+			// fetch the reward points
+			const referrerReward = 200
+			const refereeReward = 300
+			const referrer = referrerDocs.docs[0].data()
+			snap.ref.update({
+				referrerUid: referrer.uid,
+				referrerReward: refereeReward,
+				refereeReward: refereeReward,
+				firstSuccessfulPurchase: false, //  update the wallet when first time shopping is done
+				addedToWallet: false, // update to true when amount is added to wallet, right after purchase is made
+				updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+			})
+
+			// aggregate data
+			await admin
+				.firestore()
+				.collection('aggregate')
+				.doc('referrals')
+				.update({
+					totalCount: admin.firestore.FieldValue.increment(1),
+				})
+
+			// aggregate referrer data
+			await admin
+				.firestore()
+				.collection('aggregate')
+				.doc('referrals')
+				.collection('users')
+				.doc(referrer.uid)
+				.set(
+					{
+						totalCount: admin.firestore.FieldValue.increment(1),
+						referrals: admin.firestore.FieldValue.arrayUnion(snap.ref.id),
+						earnings: admin.firestore.FieldValue.increment(referrerReward),
+						lastReferralEarnings: referrerReward,
+					},
+					{ merge: true }
+				)
+
+			return
+		} catch (err) {
+			console.error('Error: ', err)
+			return
+		}
+	})
 
 /**
  * Rakuten Services
