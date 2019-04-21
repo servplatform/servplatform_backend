@@ -260,12 +260,12 @@ exports.onCreateReferral = functions.firestore
 	.document('aggregate/referrals/all/{referralId}')
 	.onCreate(async (snap, context) => {
 		const data = snap.data()
-
+		console.log(JSON.stringify(snap.data()))
 		try {
 			const referrerDocs = await admin
 				.firestore()
 				.collection('users')
-				.where('referralCode', '==', data.referredBy)
+				.where('referralCode', '==', data.referralCode)
 				.limit(1)
 				.get()
 			// no such referrer
@@ -280,6 +280,7 @@ exports.onCreateReferral = functions.firestore
 			const referrerReward = 200
 			const refereeReward = 300
 			const referrer = referrerDocs.docs[0].data()
+			console.log(referrer)
 			snap.ref.update({
 				referrerUid: referrer.uid,
 				referrerReward: refereeReward,
@@ -288,15 +289,18 @@ exports.onCreateReferral = functions.firestore
 				addedToWallet: false, // update to true when amount is added to wallet, right after purchase is made
 				updatedAt: admin.firestore.FieldValue.serverTimestamp(),
 			})
-
+			console.log('Updated')
 			// aggregate data
 			await admin
 				.firestore()
 				.collection('aggregate')
 				.doc('referrals')
-				.update({
-					totalCount: admin.firestore.FieldValue.increment(1),
-				})
+				.set(
+					{
+						totalCount: admin.firestore.FieldValue.increment(1),
+					},
+					{ merge: true }
+				)
 
 			// aggregate referrer data
 			await admin
@@ -317,7 +321,7 @@ exports.onCreateReferral = functions.firestore
 
 			return
 		} catch (err) {
-			console.error('Error: ', err)
+			console.error('Referral Error: ', err, err.message)
 			return
 		}
 	})
