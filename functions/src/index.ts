@@ -247,6 +247,86 @@ exports.setRole = functions.https.onCall(async (data, context) => {
 })
 
 /**
+ * Referral Program
+ * 1. Every user has a referral code.
+ * 2. In referral the data stored will be:
+ *   	a. Documents will be the entry of all the registeration made by referral
+ * 		b. The subcollection called aggregate will have total sign ups through referral
+ * 		c. The subcollection usersAggregate will have total shares made on any platform provided,
+ * 		   referral successful by user, amount earned, referral array holding document id of
+ * 		   referral done.
+ */
+exports.onCreateReferral = functions.firestore
+	.document('aggregate/referrals/all/{referralId}')
+	.onCreate(async (snap, context) => {
+		const data = snap.data()
+		console.log(JSON.stringify(snap.data()))
+		try {
+			const referrerDocs = await admin
+				.firestore()
+				.collection('users')
+				.where('referralCode', '==', data.referralCode)
+				.limit(1)
+				.get()
+			// no such referrer
+			if (referrerDocs.empty) {
+				await snap.ref.update({
+					referredBy: null,
+				})
+				return
+			}
+			// if referrer present
+			// fetch the reward points
+			const referrerReward = 200
+			const refereeReward = 300
+			const referrer = referrerDocs.docs[0].data()
+			console.log(referrer)
+			await snap.ref.update({
+				referrerUid: referrer.uid,
+				referrerReward: refereeReward,
+				refereeReward: refereeReward,
+				firstSuccessfulPurchase: false, //  update the wallet when first time shopping is done
+				addedToWallet: false, // update to true when amount is added to wallet, right after purchase is made
+				updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+			})
+			console.log('Updated')
+			// aggregate data
+			await admin
+				.firestore()
+				.collection('aggregate')
+				.doc('referrals')
+				.set(
+					{
+						totalCount: admin.firestore.FieldValue.increment(1),
+					},
+					{ merge: true }
+				)
+
+			// aggregate referrer data
+			await admin
+				.firestore()
+				.collection('aggregate')
+				.doc('referrals')
+				.collection('users')
+				.doc(referrer.uid)
+				.set(
+					{
+						totalCount: admin.firestore.FieldValue.increment(1),
+						referrals: admin.firestore.FieldValue.arrayUnion(snap.ref.id),
+						earnings: admin.firestore.FieldValue.increment(referrerReward),
+						lastReferralEarnings: referrerReward,
+					},
+					{ merge: true }
+				)
+
+			return
+		} catch (err) {
+			console.error('Referral Error: ', err, err.message)
+			return
+		}
+	})
+
+/**
  * Rakuten Services
  * 1. Fetch Stores  - (This will be done using Admin and only admin and relevant roles can call this function)
  * 2. Fetch Reports and Update it - (This will be done using cron jobs)
