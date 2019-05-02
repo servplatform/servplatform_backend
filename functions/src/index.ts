@@ -410,6 +410,29 @@ exports.fetchReports = functions.https.onCall(async (data, context) => {
  *  On successfull payment make sure to decrese  the approved amount.
  */
 
+const createPayout = json => {
+	const paypal = require('paypal-rest-sdk')
+	paypal.configure({
+		mode: 'sandbox', //sandbox or live
+		client_id:
+			'AVI2Ea5pU6MSYUhpUraI7xtldSSHCwO2353baTmJOhuKYp31d7WDwzQ2gFjAjgcFnIHIvDfgtoiBtOFS',
+		client_secret:
+			'EHRybMsEAxLRSb9wpUFfF7WrweKO3y48HY0eDsqQwGEXK_5fOLMhYvOntIvwos1VMhN2NHaX-mnabwNo',
+	})
+
+	return new Promise((resolve, reject) => {
+		paypal.payout.create(json, false, (err, payout) => {
+			if (err) {
+				console.log('came here rej')
+				reject(err)
+			} else {
+				console.log('came here res')
+				resolve(payout)
+			}
+		})
+	})
+}
+
 exports.makePaypalPayment = functions.https.onCall(async (data, context) => {
 	// Checking that the user is authenticated.
 	if (!context.auth) {
@@ -493,16 +516,6 @@ exports.makePaypalPayment = functions.https.onCall(async (data, context) => {
 		}
 
 		//Initialize paypal lib
-
-		const paypal = require('paypal-rest-sdk')
-		paypal.configure({
-			mode: 'sandbox', //sandbox or live
-			client_id:
-				'AVI2Ea5pU6MSYUhpUraI7xtldSSHCwO2353baTmJOhuKYp31d7WDwzQ2gFjAjgcFnIHIvDfgtoiBtOFS',
-			client_secret:
-				'EHRybMsEAxLRSb9wpUFfF7WrweKO3y48HY0eDsqQwGEXK_5fOLMhYvOntIvwos1VMhN2NHaX-mnabwNo',
-		})
-
 		const payoutRef = admin
 			.firestore()
 			.collection('payouts')
@@ -515,208 +528,319 @@ exports.makePaypalPayment = functions.https.onCall(async (data, context) => {
 			},
 			items: [
 				{
-					recipient_type: 'EMAIL',
+					recipient_type: 'PAYPAL_ID',
 					amount: {
 						value: amount,
 						currency: 'USD',
 					},
-					receiver: paypalDetails.email,
+					receiver: paypalDetails.payer_id,
 					note: 'Thank you.',
 				},
 			],
 		}
 
-		const r = await paypal.payout.create(
-			create_payout_json,
-			false,
-			async (error, payout) => {
-				if (error) {
-					console.error(
-						'Error making paypal payment',
-						error.response,
-						'For user',
-						userId,
-						userData.email
-					)
-					throw new functions.https.HttpsError(
-						'cancelled',
-						'Error making payment. Error with paypal'
-					)
-				} else {
-					await payoutRef.set({
-						userId,
-						amount: amount,
-						mode: 'paypal',
-						status: 'created',
-						paymentDataPayload: payout,
-					})
-					return payout
-				}
-			}
-		)
-		console.log('PAYOUT RESULT', r)
-		return r
+		const payout = await createPayout(create_payout_json)
+		await payoutRef.set({
+			userId,
+			amount: amount,
+			mode: 'paypal',
+			status: 'created',
+			paymentDataPayload: payout,
+		})
+		console.log(payout)
+		return payout
 	} catch (error) {
-		console.error(error)
+		console.error(
+			'Error making paypal payment',
+			error.response,
+			'For user',
+			userId
+		)
+		throw new functions.https.HttpsError(
+			'cancelled',
+			'Error making payment. Error with paypal'
+		)
 	}
 })
 
 exports.newlyPaypalPayoutWebhook = functions.https.onRequest(
 	async (request, response) => {
-		console.log('WEBHOOK EVENT RECEIVED')
-		console.log(request.body)
-		console.log(request.method)
-		const data = request.body
-		if (data.resource.batch_header) {
-			const batchId =
-				data.resource.batch_header.sender_batch_header.sender_batch_id
-			const payoutRef = admin
-				.firestore()
-				.collection('payouts')
-				.doc(batchId)
-			switch (data.event_type) {
-				case 'PAYMENT.PAYOUTSBATCH.DENIED':
-					await payoutRef.update({
-						paymentDataPayload: data,
-						status: 'denied',
-					})
-					response.status(200).end()
-					break
-				case 'PAYMENT.PAYOUTSBATCH.PROCESSING':
-					await payoutRef.update({
-						paymentDataPayload: data,
-						status: 'processing',
-					})
-					response.status(200).end()
-					break
-				case 'PAYMENT.PAYOUTSBATCH.SUCCESS':
-					await payoutRef.update({
-						paymentDataPayload: data,
-						status: 'success',
-					})
-					response.status(200).end()
-					break
-			}
-		} else {
-			const payoutId = data.resource.sender_batch_id
-			const transactionId = data.resource.transaction_id
-			const payoutRef = admin
-				.firestore()
-				.collection('payouts')
-				.doc(payoutId)
-			switch (data.event_type) {
-				case 'PAYMENT.PAYOUTS-ITEM.BLOCKED':
-					await payoutRef.update({
-						status: 'blocked',
-					})
-					await payoutRef
-						.collection('transactions')
-						.doc()
-						.set(data)
-					response.status(200).end()
-					break
-				case 'PAYMENT.PAYOUTS-ITEM.CANCELED':
-					await payoutRef.update({
-						status: 'canceled',
-					})
-					await payoutRef
-						.collection('transactions')
-						.doc()
-						.set(data)
-					response.status(200).end()
-					break
-				case 'PAYMENT.PAYOUTS-ITEM.DENIED':
-					await payoutRef.update({
-						status: 'denied',
-					})
-					await payoutRef
-						.collection('transactions')
-						.doc()
-						.set(data)
-					response.status(200).end()
-					break
-				case 'PAYMENT.PAYOUTS-ITEM.FAILED':
-					await payoutRef.update({
-						status: 'failed',
-					})
-					await payoutRef
-						.collection('transactions')
-						.doc()
-						.set(data)
-					response.status(200).end()
-					break
-				case 'PAYMENT.PAYOUTS-ITEM.HELD':
-					await payoutRef.update({
-						status: 'held',
-					})
-					await payoutRef
-						.collection('transactions')
-						.doc()
-						.set(data)
-					response.status(200).end()
-					break
-				case 'PAYMENT.PAYOUTS-ITEM.REFUNDED':
-					await payoutRef.update({
-						status: 'refunded',
-					})
-					await payoutRef
-						.collection('transactions')
-						.doc()
-						.set(data)
-					response.status(200).end()
-					break
-				case 'PAYMENT.PAYOUTS-ITEM.RETURNED':
-					await payoutRef.update({
-						status: 'returned',
-					})
-					await payoutRef
-						.collection('transactions')
-						.doc()
-						.set(data)
-					response.status(200).end()
-					break
-				case 'PAYMENT.PAYOUTS-ITEM.SUCCEEDED':
-					await payoutRef.update({
-						status: 'success',
-					})
-					await payoutRef
-						.collection('transactions')
-						.doc()
-						.set(data)
-					response.status(200).end()
-					break
-				case 'PAYMENT.PAYOUTS-ITEM.UNCLAIMED':
-					await payoutRef.update({
-						status: 'unclaimed',
-					})
-					await payoutRef
-						.collection('transactions')
-						.doc()
-						.set(data)
-					const amount = Number(data.resource.payout_item.amount.value)
-					const user = await payoutRef.get()
-					const userData = user.data()
-					const userId = userData.userId
-					const wallet = await admin
-						.firestore()
-						.collection('wallets')
-						.doc(userId)
-						.get()
-					const walletData = wallet.data()
-					const approvedAmount = walletData.approvedAmount
-					await admin
-						.firestore()
-						.collection('wallets')
-						.doc(userId)
-						.update({
-							approvedAmount: approvedAmount - amount,
+		try {
+			console.log('WEBHOOK EVENT RECEIVED')
+			console.log(request.body)
+			console.log(request.method)
+			const data = request.body
+			if (data.resource.batch_header) {
+				const batchId =
+					data.resource.batch_header.sender_batch_header.sender_batch_id
+				const payoutRef = admin
+					.firestore()
+					.collection('payouts')
+					.doc(batchId)
+				switch (data.event_type) {
+					case 'PAYMENT.PAYOUTSBATCH.DENIED':
+						await payoutRef.update({
+							paymentDataPayload: data,
+							status: 'denied',
 						})
+						response.status(200).end()
+						break
+					case 'PAYMENT.PAYOUTSBATCH.PROCESSING':
+						await payoutRef.update({
+							paymentDataPayload: data,
+							status: 'processing',
+						})
+						response.status(200).end()
+						break
+					case 'PAYMENT.PAYOUTSBATCH.SUCCESS':
+						await payoutRef.update({
+							paymentDataPayload: data,
+							status: 'success',
+						})
+						response.status(200).end()
+						break
+				}
+			} else {
+				const payoutId = data.resource.sender_batch_id
+				const transactionId = data.resource.transaction_id
+				const payoutRef = admin
+					.firestore()
+					.collection('payouts')
+					.doc(payoutId)
 
-					response.status(200).end()
-					break
+				switch (data.event_type) {
+					case 'PAYMENT.PAYOUTS-ITEM.BLOCKED':
+						await payoutRef.update({
+							status: 'blocked',
+						})
+						await payoutRef
+							.collection('transactions')
+							.doc()
+							.set(data)
+						response.status(200).end()
+						break
+					case 'PAYMENT.PAYOUTS-ITEM.CANCELED':
+						await payoutRef.update({
+							status: 'canceled',
+						})
+						await payoutRef
+							.collection('transactions')
+							.doc()
+							.set(data)
+						response.status(200).end()
+						break
+					case 'PAYMENT.PAYOUTS-ITEM.DENIED':
+						await payoutRef.update({
+							status: 'denied',
+						})
+						await payoutRef
+							.collection('transactions')
+							.doc()
+							.set(data)
+						response.status(200).end()
+						break
+					case 'PAYMENT.PAYOUTS-ITEM.FAILED':
+						await payoutRef.update({
+							status: 'failed',
+						})
+						await payoutRef
+							.collection('transactions')
+							.doc()
+							.set(data)
+						response.status(200).end()
+						break
+					case 'PAYMENT.PAYOUTS-ITEM.HELD':
+						try {
+							await payoutRef.update({
+								status: 'held',
+							})
+							await payoutRef
+								.collection('transactions')
+								.doc()
+								.set(data)
+							response.status(200).end()
+						} catch (error) {
+							console.log('HELD', error)
+							response.status(200).end()
+						}
+						break
+					case 'PAYMENT.PAYOUTS-ITEM.REFUNDED':
+						try {
+							await payoutRef.update({
+								status: 'refunded',
+							})
+							await payoutRef
+								.collection('transactions')
+								.doc()
+								.set(data)
+							response.status(200).end()
+						} catch (error) {
+							console.log('error: ', error)
+							response.status(200).end()
+						}
+						break
+					case 'PAYMENT.PAYOUTS-ITEM.RETURNED':
+						try {
+							await payoutRef.update({
+								status: 'returned',
+							})
+							await payoutRef
+								.collection('transactions')
+								.doc()
+								.set(data)
+							response.status(200).end()
+						} catch (error) {
+							console.log('Error updating returned transaction', error)
+							response.status(200).end()
+						}
+						break
+					case 'PAYMENT.PAYOUTS-ITEM.UNCLAIMED':
+						try {
+							await payoutRef.update({
+								status: 'unclaimed',
+							})
+							await payoutRef
+								.collection('transactions')
+								.doc()
+								.set(data)
+							response.status(200).end()
+						} catch (error) {
+							console.log('Error updating unclaimed transaction', error)
+							response.status(200).end()
+						}
+						break
+					case 'PAYMENT.PAYOUTS-ITEM.SUCCEEDED':
+						try {
+							await payoutRef.update({
+								status: 'success',
+							})
+							await payoutRef
+								.collection('transactions')
+								.doc()
+								.set(data)
+
+							const amount = Number(data.resource.payout_item.amount.value)
+							const user = await payoutRef.get()
+							const userData = user.data()
+							const userId = userData.userId
+							// const wallet = await admin
+							// 	.firestore()
+							// 	.collection('wallets')
+							// 	.doc(userId)
+							// 	.get()
+							// const walletData = wallet.data()
+							// const approvedAmount = walletData.approvedAmount
+							// Add logs
+							const increment = admin.firestore.FieldValue.increment(amount)
+							const decrement = admin.firestore.FieldValue.increment(-amount)
+							await admin
+								.firestore()
+								.collection('wallets')
+								.doc(userId)
+								.update({
+									approvedAmount: decrement,
+									redeemedAmount: increment,
+								})
+
+							response.status(200).end()
+						} catch (error) {
+							console.log('Error updaing success transaction', error)
+							response.status(200).end()
+						}
+						break
+				}
 			}
-		}
 
-		return
+			return
+		} catch (error) {
+			console.log('ERROR IN WEBHOOK', error)
+			response.status(200).end()
+		}
 	}
 )
+
+const createToken = auth_code => {
+	const paypal = require('paypal-rest-sdk')
+	paypal.configure({
+		mode: 'sandbox', //sandbox or live
+		client_id:
+			'AVI2Ea5pU6MSYUhpUraI7xtldSSHCwO2353baTmJOhuKYp31d7WDwzQ2gFjAjgcFnIHIvDfgtoiBtOFS',
+		client_secret:
+			'EHRybMsEAxLRSb9wpUFfF7WrweKO3y48HY0eDsqQwGEXK_5fOLMhYvOntIvwos1VMhN2NHaX-mnabwNo',
+	})
+
+	return new Promise((resolve, reject) => {
+		paypal.openIdConnect.tokeninfo.create(auth_code, (error, tokeninfo) => {
+			if (error) {
+				console.log(error)
+				reject(error)
+			}
+			console.log(tokeninfo)
+			resolve(tokeninfo)
+		})
+	})
+}
+
+const getUserDetails = token => {
+	const paypal = require('paypal-rest-sdk')
+	paypal.configure({
+		mode: 'sandbox', //sandbox or live
+		client_id:
+			'AVI2Ea5pU6MSYUhpUraI7xtldSSHCwO2353baTmJOhuKYp31d7WDwzQ2gFjAjgcFnIHIvDfgtoiBtOFS',
+		client_secret:
+			'EHRybMsEAxLRSb9wpUFfF7WrweKO3y48HY0eDsqQwGEXK_5fOLMhYvOntIvwos1VMhN2NHaX-mnabwNo',
+	})
+
+	return new Promise((resolve, reject) => {
+		paypal.openIdConnect.userinfo.get(token, (error, tokeninfo) => {
+			if (error) {
+				console.log(error)
+				reject(error)
+			}
+			console.log(tokeninfo)
+			resolve(tokeninfo)
+		})
+	})
+}
+
+exports.connectWithPaypal = functions.https.onCall(async (data, context) => {
+	// Checking that the user is authenticated.
+	if (!context.auth) {
+		// Throwing an HttpsError so that the client gets the error details.
+		throw new functions.https.HttpsError(
+			'failed-precondition',
+			'The function must be called ' + 'while authenticated.'
+		)
+	}
+
+	if (!data.code || _.isEmpty(_.trim(data.code))) {
+		throw new functions.https.HttpsError(
+			'failed-precondition',
+			'The function must be called with auth code'
+		)
+	}
+
+	try {
+		const token = await createToken(data.code)
+		const userInfo = await getUserDetails(token)
+		await admin
+			.firestore()
+			.collection('users')
+			.doc(context.auth.uid)
+			.update({
+				paypalDetails: userInfo,
+			})
+		return 'Account Updated successfully'
+	} catch (error) {
+		console.log('ERROR CONNECTING TO PAYPAL ', error)
+		return 'Something went wrong connecting paypal account'
+	}
+})
+
+exports.rakutenEvents = functions.https.onRequest(async (request, response) => {
+	console.log(request)
+	console.log(request.body)
+	console.log(request.header)
+
+	response.status(200).end()
+})
