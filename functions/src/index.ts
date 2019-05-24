@@ -919,8 +919,66 @@ exports.connectWithPaypal = functions.https.onCall(async (data, context) => {
 
 exports.rakutenEvents = functions.https.onRequest(async (request, response) => {
 	console.log(request)
+	console.log(request.method)
+	console.log(request.rawBody)
 	console.log(request.body)
 	console.log(request.header)
 
 	response.status(200).end()
 })
+
+exports.onStoreCreate = functions.firestore
+	.document('stores/{storeId}')
+	.onCreate((snap, context) => {
+		const newValue = snap.data()
+
+		/**
+		 * [WHAT] Get the url and split it by "."
+		 * [WHY] It will help in search for the store in chrome extension
+		 */
+		const url = newValue.url
+		const urlSerarch = url.split('.')
+		return snap.ref.update({
+			urlSerarch: urlSerarch,
+		})
+	})
+
+exports.onUpdateUser = functions.firestore
+	.document('users/{userId}')
+	.onUpdate(async (snap, context) => {
+		const oldData = snap.before.data()
+		const newData = snap.after.data()
+		/**
+		 * [WHAT] Get the old user role, check if the calling user is admin or not. if not block update.
+		 * [WHY] To give permission to users
+		 */
+
+		/**TODO: Allow only admin to update the role */
+
+		if (!oldData || !newData) {
+			return
+		}
+
+		if (newData.role !== oldData.role) {
+			try {
+				await grantRole(context.params.userId, newData.role)
+				snap.after.ref
+					.update({
+						role: newData.role,
+						updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+					})
+					.then(() =>
+						console.log(
+							'Role updated for user',
+							context.params.userId,
+							oldData.role,
+							newData.role
+						)
+					)
+					.catch(err => console.log('Error updating role in db'))
+			} catch (error) {
+				console.log('ERROR GRANTING USER ROLE', error)
+				return
+			}
+		}
+	})
