@@ -413,4 +413,67 @@ exports.onOrderUpdate = functions.firestore
 		}
 	})
 
-///
+// Razorpay
+
+exports.createRzpOrder = functions.https.onCall(async (data, context) => {
+	// Checking that the user is authenticated.
+	if (!context.auth) {
+		// Throwing an HttpsError so that the client gets the error details.
+		throw new functions.https.HttpsError(
+			'failed-precondition',
+			'The function must be called ' + 'while authenticated.'
+		)
+	}
+
+	const userId = context.auth.uid
+
+	const cart = data.cart
+	const totalAmount = data.totalAmount
+	const taxAmount = data.taxAmount
+	const subTotal = data.subTotal
+
+	console.log(data)
+
+	const Razorpay = require('razorpay')
+
+	const rzp = new Razorpay({
+		key_id: functions.config().rzp.key_id, // your `KEY_ID`
+		key_secret: functions.config().rzp.secret, // your `KEY_SECRET`
+	})
+
+	try {
+		const orderRef = admin
+			.firestore()
+			.collection('orders')
+			.doc()
+		const response = await rzp.orders.create({
+			amount: parseInt((totalAmount * 100).toString(), 10),
+			currency: 'INR',
+			receipt: orderRef.id,
+			payment_capture: '0',
+		})
+
+		console.log(response)
+
+		await orderRef.set({
+			cart: cart,
+			payment: response,
+			totalAmount: totalAmount,
+			taxAmount: taxAmount,
+			subTotal: subTotal,
+			razorpay_order_id: response.id,
+			status: 'paid',
+			status1: 'received',
+			userId: userId,
+			createdAt: admin.firestore.Timestamp.now(),
+			updatedAt: admin.firestore.Timestamp.now(),
+		})
+		return { ...response, orderId: orderRef.id }
+	} catch (error) {
+		console.log(error)
+		throw new functions.https.HttpsError(
+			'aborted',
+			'Something went wrong. Try again latter'
+		)
+	}
+})
