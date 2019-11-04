@@ -8,7 +8,7 @@ admin.initializeApp()
 const stripe = require('stripe')(functions.config().stripe.token)
 // Constants
 
-const roles = ['user', 'admin', 'manager', 'support']
+const roles = ['user', 'admin']
 const FROM_EMAIL = 'no-reply@hathtech.com'
 const actionCodeSettings = {
 	// URL you want to redirect back to. The domain (www.example.com) for
@@ -59,7 +59,7 @@ exports.onCreateUser = functions.auth.user().onCreate(async user => {
 				displayName: user.displayName,
 				email: user.email,
 				avatarURL: user.photoURL,
-
+				role: 'user',
 				createdAt: admin.firestore.Timestamp.now(),
 				updatedAt: admin.firestore.Timestamp.now(),
 			})
@@ -161,6 +161,8 @@ exports.setRole = functions.https.onCall(async (data, context) => {
 
 	const isAdmin = (adminRecord.customClaims as any).role === 'admin'
 
+	// TODO:(DEVELOPERS) -- Comment the below line to add admin for the first time.
+
 	if (!isAdmin) {
 		// Throwing an HttpsError so that the client gets the error details.
 		throw new functions.https.HttpsError(
@@ -196,8 +198,28 @@ exports.setRole = functions.https.onCall(async (data, context) => {
 		)
 	}
 
-	// Set claims on firebase user and firestore user
-	return grantRole(userId, role)
+	try {
+		// Check if user is already admin
+		const user = await admin
+			.firestore()
+			.collection('users')
+			.doc(userId)
+			.get()
+		const userData = user.data()
+		if (userData.role === 'admin') {
+			return 'User is already admin'
+		}
+		// Set claims on firebase user and firestore user
+		await grantRole(userId, role)
+		await admin
+			.firestore()
+			.collection('users')
+			.doc(userId)
+			.update({ role: role })
+		return 'success'
+	} catch (error) {
+		throw new functions.https.HttpsError('aborted', 'Something went wrong')
+	}
 })
 
 /**
