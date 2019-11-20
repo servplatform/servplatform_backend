@@ -499,3 +499,52 @@ exports.createRzpOrder = functions.https.onCall(async (data, context) => {
 		)
 	}
 })
+
+// Cash on delivery order
+
+exports.createCODOrder = functions.https.onCall(async (data, context) => {
+	// Checking that the user is authenticated.
+	if (!context.auth) {
+		// Throwing an HttpsError so that the client gets the error details.
+		throw new functions.https.HttpsError(
+			'failed-precondition',
+			'The function must be called ' + 'while authenticated.'
+		)
+	}
+
+	const userId = context.auth.uid
+
+	const cart = data.cart
+	const totalAmount = data.totalAmount
+	const taxAmount = data.taxAmount
+	const subTotal = data.subTotal
+
+	console.log(data)
+	try {
+		const orderRef = admin
+			.firestore()
+			.collection('orders')
+			.doc()
+
+		await orderRef.set({
+			cart: cart,
+			payment: null,
+			totalAmount: totalAmount,
+			taxAmount: taxAmount,
+			subTotal: subTotal,
+			razorpay_order_id: null,
+			status: 'cod',
+			status1: 'received',
+			userId: userId,
+			createdAt: admin.firestore.Timestamp.now(),
+			updatedAt: admin.firestore.Timestamp.now(),
+		})
+		return { orderId: orderRef.id }
+	} catch (error) {
+		console.log(error)
+		throw new functions.https.HttpsError(
+			'aborted',
+			'Something went wrong. Try again latter'
+		)
+	}
+})
