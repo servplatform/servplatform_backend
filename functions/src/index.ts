@@ -1,556 +1,210 @@
-/**
- *
- * 1. Set razorpay and stripe token
- * 2. If you don't want to use razorpay or stripe then set token as empty string ---- ""
- *
- */
-
-import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
-import * as _ from 'lodash'
-
-admin.initializeApp()
-
-const stripe = require('stripe')(functions.config().stripe.token)
-// Constants
-
-const roles = ['user', 'admin']
-const FROM_EMAIL = 'no-reply@hathtech.com'
-const actionCodeSettings = {
-	// URL you want to redirect back to. The domain (www.example.com) for
-	// this URL must be whitelisted in the Firebase Console.
-	url: 'http://localhost:3000/verify',
-	// This must be true for email link sign-in.
-	handleCodeInApp: true,
-}
-
-/**
- * Function to add custom claims for each user. (Note: Custom claims caches for 1 hour and then gets changed)
- * @param userId
- * @param role ("user", "admin", "manager", "support")
- */
-async function grantRole(userId: string, role: string) {
-	return admin.auth().setCustomUserClaims(userId, { role: role })
-}
-
-async function sendgridEmail(email, templateId, dynamic_template_data) {
-	const sgMail = require('@sendgrid/mail')
-	const SENDGRID_API_KEY = functions.config().sendgriddev.api
-	sgMail.setApiKey(SENDGRID_API_KEY)
-	try {
-		const message = {
-			to: email,
-			from: FROM_EMAIL,
-
-			templateId: templateId,
-			dynamic_template_data: dynamic_template_data,
-		}
-		const mailSent = await sgMail.send(message)
-		console.log(mailSent, 'A SENDGRID EMAIL SENT')
-	} catch (error) {
-		console.error('error: SENDING MAIL ', error)
-	}
-}
-
-// Perform new user creation side effects
-
-exports.onCreateUser = functions.auth.user().onCreate(async user => {
-	try {
-		const userCollection = await admin
-			.firestore()
-			.collection('users')
-			.doc(user.uid)
-			.set({
-				uid: user.uid,
-				displayName: user.displayName,
-				email: user.email,
-				avatarURL: user.photoURL,
-				role: 'user',
-				createdAt: admin.firestore.Timestamp.now(),
-				updatedAt: admin.firestore.Timestamp.now(),
-			})
-		console.log('USER COLLECTION CREATED', userCollection)
-		await grantRole(user.uid, 'user')
-		console.log('USER ROLE GRANTEDT')
-		// Above steps are neccessary and it must not fail.
-
-		if (!user.emailVerified) {
-			admin
-				.auth()
-				.generateEmailVerificationLink(user.email, actionCodeSettings)
-				.then(link => {
-					// Construct password reset email template, embed the link and send
-					// using custom SMTP server.
-					return sendgridEmail(
-						user.email,
-
-						'd-91f898ae86bc461d8b1b1e4806022e3f',
-						{
-							preheader: 'confirming emails makes us feel you are real',
-							header: 'Confirm your email',
-							body: 'Please confirm your email by tapping on below button.',
-							link: link,
-							buttonText: 'Confirm Email!',
-						}
-					)
-				})
-				.catch(error => {
-					// Some error occurred.
-					console.log('ERROR SENDING VERIFICATION EMAIL', error)
-				})
-		}
-	} catch (error) {
-		console.error('ERROR IN ON USER CREATION', error)
-	}
-})
-
-/**
- * Only admin is allowed to execute this function.
- */
-
-exports.sendVerification = functions.https.onCall(async (data, context) => {
-	// Checking that the user is authenticated.
-	if (!context.auth) {
-		// Throwing an HttpsError so that the client gets the error details.
-		throw new functions.https.HttpsError(
-			'failed-precondition',
-			'The function must be called ' + 'while authenticated.'
-		)
-	}
-
-	const user = await admin.auth().getUser(context.auth.uid)
-
-	if (user.emailVerified) {
-		return
-	}
-
-	return admin
-		.auth()
-		.generateEmailVerificationLink(user.email, actionCodeSettings)
-		.then(link => {
-			// Construct password reset email template, embed the link and send
-			// using custom SMTP server.
-			return sendgridEmail(
-				user.email,
-
-				'd-91f898ae86bc461d8b1b1e4806022e3f',
-				{
-					preheader: 'confirming emails makes us feel you are real',
-					header: 'Confirm your email',
-					body: 'Please confirm your email by tapping on below button.',
-					link: link,
-					buttonText: 'Confirm Email!',
-				}
-			)
-		})
-		.catch(error => {
-			// Some error occurred.
-		})
-})
-
-/**
- * Only admin is allowed to execute this function.
- */
-
-exports.setRole = functions.https.onCall(async (data, context) => {
-	// Checking that the user is authenticated.
-	if (!context.auth) {
-		// Throwing an HttpsError so that the client gets the error details.
-		throw new functions.https.HttpsError(
-			'failed-precondition',
-			'The function must be called ' + 'while authenticated.'
-		)
-	}
-
-	// Checking that user is admin
-	const adminRecord = await admin.auth().getUser(context.auth.uid)
-
-	const isAdmin = (adminRecord.customClaims as any).role === 'admin'
-
-	// TODO:(DEVELOPERS) -- Comment the below line to add admin for the first time.
-
-	if (!isAdmin) {
-		// Throwing an HttpsError so that the client gets the error details.
-		throw new functions.https.HttpsError(
-			'failed-precondition',
-			'The function must be called ' + 'only by an administrator'
-		)
-	}
-
-	// Role and UserId passed from client passed from the client
-	const role = data.role
-	const userId = data.userId
-
-	// Checking for role
-	if (
-		!(typeof role === 'string') ||
-		role.length === 0 ||
-		!_.values(roles).includes(role)
-	) {
-		// Throwing an HttpsError so that the client gets the error details.
-		throw new functions.https.HttpsError(
-			'invalid-argument',
-			'The function must be called with ' +
-				' arguments "role" containing the role to be assigned and "userId"   '
-		)
-	}
-
-	// Checking for role
-	if (!(typeof userId === 'string') || !userId) {
-		// Throwing an HttpsError so that the client gets the error details.
-		throw new functions.https.HttpsError(
-			'invalid-argument',
-			'The function must be called with ' + ' Check userId Passed  '
-		)
-	}
-
-	try {
-		// Check if user is already admin
-		const user = await admin
-			.firestore()
-			.collection('users')
-			.doc(userId)
-			.get()
-		const userData = user.data()
-		if (userData.role === 'admin') {
-			return 'User is already admin'
-		}
-		// Set claims on firebase user and firestore user
-		await grantRole(userId, role)
-		await admin
-			.firestore()
-			.collection('users')
-			.doc(userId)
-			.update({ role: role })
-		return 'success'
-	} catch (error) {
-		throw new functions.https.HttpsError('aborted', 'Something went wrong')
-	}
-})
-
-/**
- * STRIPE CHARGES
- */
-
-/**
- * Only admin is allowed to execute this function.
- */
-
-exports.createStripeChareg = functions.https.onCall(async (data, context) => {
-	// Checking that the user is authenticated.
-	if (!context.auth) {
-		// Throwing an HttpsError so that the client gets the error details.
-		throw new functions.https.HttpsError(
-			'failed-precondition',
-			'The function must be called ' + 'while authenticated.'
-		)
-	}
-
-	const userId = context.auth.uid
-
-	const token = data.token
-	const cart = data.cart
-	const totalAmount = data.totalAmount
-	const taxAmount = data.taxAmount
-	const subTotal = data.subTotal
-
-	console.log(data)
-
-	// TODO: type checking and calculate amount using cart.
-
-	try {
-		const response = await stripe.paymentIntents.create({
-			amount: parseInt((totalAmount * 100).toString(), 10),
-			currency: 'usd',
-		})
-
-		const orderRef = admin
-			.firestore()
-			.collection('orders')
-			.doc(response.id)
-
-		await orderRef.set({
-			cart: cart,
-			payment: response,
-			totalAmount: totalAmount,
-			taxAmount: taxAmount,
-			subTotal: subTotal,
-			paymentId: response.id,
-			status: 'created',
-			status1: 'received',
-			userId: userId,
-			createdAt: admin.firestore.Timestamp.now(),
-			updatedAt: admin.firestore.Timestamp.now(),
-		})
-		return { ...response, orderId: orderRef.id }
-	} catch (error) {
-		console.log(error)
-		throw new functions.https.HttpsError(
-			'aborted',
-			'Something went wrong. Try again latter'
-		)
-	}
-})
-
-/// Stripe webhook for payment intent
-
-exports.stripeWebhook = functions.https.onRequest(async (request, response) => {
-	const endpointSecret = 'whsec_iEpuKW86nY1IGcKyUB8zwjkka1YO5IRR'
-	const sig = request.headers['stripe-signature']
-	const body = request.rawBody
-
-	console.log(request.headers)
-
-	let event = null
-
-	try {
-		event = stripe.webhooks.constructEvent(request.rawBody, sig, endpointSecret)
-		console.log(event)
-	} catch (err) {
-		console.log(err)
-		response.status(400).end()
-		return null
-	}
-
-	let intent = null
-	switch (event['type']) {
-		case 'payment_intent.succeeded':
-			intent = event.data.object
-			console.log('Succeeded:', intent.id)
-			try {
-				await admin
-					.firestore()
-					.collection('orders')
-					.doc(intent.id)
-					.update({
-						status: 'paid',
-						updatedAt: admin.firestore.Timestamp.now(),
-					})
-			} catch (error) {
-				console.log('ERROR UPDATING ORDER: ', error)
-				response.sendStatus(200)
-			}
-			break
-		case 'payment_intent.payment_failed':
-			intent = event.data.object
-			const message =
-				intent.last_payment_error && intent.last_payment_error.message
-			try {
-				await admin
-					.firestore()
-					.collection('orders')
-					.doc(intent.id)
-					.update({
-						status: 'failed',
-						message: message,
-						updatedAt: admin.firestore.Timestamp.now(),
-					})
-				return response.sendStatus(200)
-			} catch (error) {
-				console.log('ERROR UPDATING ORDER: ', error)
-				return response.sendStatus(200)
-			}
-			break
-	}
-
-	return response.sendStatus(200)
-})
-
-// DELETE CART ITEM
-
-exports.onOrderCreate = functions.firestore
-	.document('orders/{orderId}')
-	.onCreate(async (snap, context) => {
-		const orderData = snap.data()
-		const cartData = orderData.cart
-
-		try {
-			for (const item of cartData) {
-				await admin
-					.firestore()
-					.collection('carts')
-					.doc(item.cartId)
-					.update({
-						deleted: true,
-						ordered: true,
-					})
-					.then(() => console.log('cart updated', item.cartId))
-
-				await admin
-					.firestore()
-					.collection('products')
-					.doc(item.productId)
-					.update({
-						inventoryQty: admin.firestore.FieldValue.increment(-item.qty),
-					})
-					.then(() => console.log('product updated', item.productId))
-			}
-		} catch (error) {
-			console.log(error)
-		}
-	})
-
-exports.onOrderUpdate = functions.firestore
-	.document('orders/{orderId}')
-	.onUpdate(async (change, context) => {
-		const prevData = change.before.data()
-		const newData = change.after.data()
-
-		if (newData === null) {
-			return
-		}
-		if (newData.status !== 'paid' || newData.status !== 'failed') {
-			return
-		}
-		if (newData.status === 'paid') {
-			const cartData = newData.cart
-
-			try {
-				for (const item of cartData) {
-					await admin
-						.firestore()
-						.collection('products')
-						.doc(item.productId)
-						.update({
-							inventoryQty: admin.firestore.FieldValue.increment(-item.qty),
-						})
-						.then(() => console.log('product updated', item.productId))
-				}
-			} catch (error) {
-				console.log(error)
-				return
-			}
-		} else if (newData.status === 'failed') {
-			const cartData = newData.cart
-
-			try {
-				for (const item of cartData) {
-					await admin
-						.firestore()
-						.collection('products')
-						.doc(item.productId)
-						.update({
-							inventoryQty: admin.firestore.FieldValue.increment(item.qty),
-						})
-						.then(() => console.log('product updated', item.productId))
-				}
-			} catch (error) {
-				console.log(error)
-				return
-			}
-		}
-	})
-
-// Razorpay
-
-exports.createRzpOrder = functions.https.onCall(async (data, context) => {
-	// Checking that the user is authenticated.
-	if (!context.auth) {
-		// Throwing an HttpsError so that the client gets the error details.
-		throw new functions.https.HttpsError(
-			'failed-precondition',
-			'The function must be called ' + 'while authenticated.'
-		)
-	}
-
-	const userId = context.auth.uid
-
-	const cart = data.cart
-	const totalAmount = data.totalAmount
-	const taxAmount = data.taxAmount
-	const subTotal = data.subTotal
-
-	console.log(data)
-
-	const Razorpay = require('razorpay')
-
-	const rzp = new Razorpay({
-		key_id: functions.config().rzp.key_id, // your `KEY_ID`
-		key_secret: functions.config().rzp.secret, // your `KEY_SECRET`
-	})
-
-	try {
-		const orderRef = admin
-			.firestore()
-			.collection('orders')
-			.doc()
-		const response = await rzp.orders.create({
-			amount: parseInt((totalAmount * 100).toString(), 10),
-			currency: 'INR',
-			receipt: orderRef.id,
-			payment_capture: '0',
-		})
-
-		console.log(response)
-
-		await orderRef.set({
-			cart: cart,
-			payment: response,
-			totalAmount: totalAmount,
-			taxAmount: taxAmount,
-			subTotal: subTotal,
-			razorpay_order_id: response.id,
-			status: 'paid',
-			status1: 'received',
-			userId: userId,
-			createdAt: admin.firestore.Timestamp.now(),
-			updatedAt: admin.firestore.Timestamp.now(),
-		})
-		return { ...response, orderId: orderRef.id }
-	} catch (error) {
-		console.log(error)
-		throw new functions.https.HttpsError(
-			'aborted',
-			'Something went wrong. Try again latter'
-		)
-	}
-})
-
-// Cash on delivery order
-
-exports.createCODOrder = functions.https.onCall(async (data, context) => {
-	// Checking that the user is authenticated.
-	if (!context.auth) {
-		// Throwing an HttpsError so that the client gets the error details.
-		throw new functions.https.HttpsError(
-			'failed-precondition',
-			'The function must be called ' + 'while authenticated.'
-		)
-	}
-
-	const userId = context.auth.uid
-
-	const cart = data.cart
-	const totalAmount = data.totalAmount
-	const taxAmount = data.taxAmount
-	const subTotal = data.subTotal
-
-	console.log(data)
-	try {
-		const orderRef = admin
-			.firestore()
-			.collection('orders')
-			.doc()
-
-		await orderRef.set({
-			cart: cart,
-			payment: null,
-			totalAmount: totalAmount,
-			taxAmount: taxAmount,
-			subTotal: subTotal,
-			razorpay_order_id: null,
-			status: 'cod',
-			status1: 'received',
-			userId: userId,
-			createdAt: admin.firestore.Timestamp.now(),
-			updatedAt: admin.firestore.Timestamp.now(),
-		})
-		return { orderId: orderRef.id }
-	} catch (error) {
-		console.log(error)
-		throw new functions.https.HttpsError(
-			'aborted',
-			'Something went wrong. Try again latter'
-		)
-	}
-})
+import * as functions from 'firebase-functions'
+//const serviceAccount = require("servplatform-d4668-firebase-adminsdk-rqyid-c976dca51e.json");
+
+admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+    databaseURL: 'https://servplatform-d4668.firebaseio.com'
+  });
+ 
+//admin.initializeApp(functions.config().firebase);
+
+import * as tookanFunctions from './tookan-operations/index'
+
+export const firestoreInstance = admin.firestore();
+
+export const onTaskCreate = functions.firestore
+    .document('task/{taskId}')
+    .onCreate((snapshot,context) => {
+        console.log('onTaskCreateTriggered',)
+        return tookanFunctions.createTookanTask(snapshot,context);
+    });
+ 
+export const onTaskEdit = functions.firestore
+    .document('task/{taskId}')
+    .onCreate((snapshot,context) => {
+        console.log('onTaskEditTriggered',)
+        return tookanFunctions.edittookantask(snapshot,context);
+    });    
+
+export const onTaskDelete = functions.firestore
+    .document('task/{taskId}')
+    .onCreate((snapshot,context) => {
+        console.log('onTaskDeleteTriggered',)
+        return tookanFunctions.deleteTookanTask(snapshot,context);
+    }); 
+
+export const onTaskStatus = functions.firestore
+    .document('task/{taskId}')
+    .onCreate((snapshot,context) => {
+        console.log('onTaskStatusTriggered',)
+        return tookanFunctions.updateTookanTaskstatus(snapshot,context);
+    }); 
+
+export const onStartTask = functions.firestore
+    .document('task/{taskId}')
+    .onCreate((snapshot,context) => {
+        console.log('onStartTaskTriggered',)
+        return tookanFunctions.Starttookantask(snapshot,context);
+    }); 
+
+export const onCancelTask = functions.firestore
+    .document('task/{taskId}')
+    .onCreate((snapshot,context) => {
+        console.log('onCancelTaskTriggered',)
+        return tookanFunctions.Canceltookantask(snapshot,context);
+    }); 
+
+export const onAssignTask = functions.firestore
+    .document('task/{taskId}')
+    .onCreate((snapshot,context) => {
+        console.log('onAssignTaskTriggered',)
+        return tookanFunctions.Assigntookantask(snapshot,context);
+    }); 
+
+export const onAutoAssignTask = functions.firestore
+    .document('task/{taskId}')
+    .onCreate((snapshot,context) => {
+        console.log('onAutoAssignTaskTriggered',)
+        return tookanFunctions.AutoAssigntookantask(snapshot,context);
+    }); 
+
+export const onTaskStatistics = functions.firestore
+    .document('task/{taskId}')
+    .onCreate((snapshot,context) => {
+        console.log('onTaskStatisticsTriggered',)
+        return tookanFunctions.GettookantaskStatistics(snapshot,context);
+    }); 
+
+export const onGetAllAgents = functions.firestore
+    .document('agents/{agentId}')
+    .onCreate((snapshot,context) => {
+        console.log('onGetAllAgentsTriggered',)
+        return tookanFunctions.getAllTookanAgents(snapshot,context);
+    });        
+
+export const onAddAgents = functions.firestore
+    .document('agents/{agentId}')
+    .onCreate((snapshot,context) => {
+        console.log('onAddAgentsTriggered',)
+        return tookanFunctions.AddTookanAgents(snapshot,context);
+    });            
+
+export const onEditAgents = functions.firestore
+    .document('agents/{agentId}')
+    .onCreate((snapshot,context) => {
+        console.log('onEditAgentsTriggered',)
+        return tookanFunctions.EditTookanAgents(snapshot,context);
+    }); 
+    
+export const onBlockUnblockAgents = functions.firestore
+    .document('agents/{agentId}')
+    .onCreate((snapshot,context) => {
+        console.log('onBlockUnblockAgentsTriggered',)
+        return tookanFunctions.BlockorUnblockTookanAgents(snapshot,context);
+    }); 
+
+export const onDeleteAgents = functions.firestore
+    .document('agents/{agentId}')
+    .onCreate((snapshot,context) => {
+        console.log('onDeleteAgentsTriggered',)
+        return tookanFunctions.DeleteTookanAgents(snapshot,context);
+    });
+    
+export const onViewAgentsProfile = functions.firestore
+    .document('agents/{agentId}')
+    .onCreate((snapshot,context) => {
+        console.log('onViewAgentsProfileTriggered',)
+        return tookanFunctions.ViewTookanAgentsProfile(snapshot,context);
+    }); 
+
+export const onUpdateAgentsTag = functions.firestore
+    .document('agents/{agentId}')
+    .onCreate((snapshot,context) => {
+        console.log('onUpdateAgentsTagTriggered',)
+        return tookanFunctions.UpdateTookanAgentTags(snapshot,context);
+    });  
+    
+export const onGetAgentsTag = functions.firestore
+    .document('agents/{agentId}')
+    .onCreate((snapshot,context) => {
+        console.log('onGetAgentsTagTriggered',)
+        return tookanFunctions.GetTookanAgentTags(snapshot,context);
+    }); 
+    
+export const onGetAgentsLogs = functions.firestore
+    .document('agents/{agentId}')
+    .onCreate((snapshot,context) => {
+        console.log('onGetAgentsLogsTriggered',)
+        return tookanFunctions.GetTookanAgentLogs(snapshot,context);
+    }); 
+    
+export const onGetAgentsLocation = functions.firestore
+    .document('agents/{agentId}')
+    .onCreate((snapshot,context) => {
+        console.log('onGetAgentsLocationTriggered',)
+        return tookanFunctions.GetTookanAgentLocation(snapshot,context);
+    });  
+
+export const onSendAgentsNotification = functions.firestore
+    .document('agents/{agentId}')
+    .onCreate((snapshot,context) => {
+        console.log('onSendAgentsNotificationTriggered',)
+        return tookanFunctions.SendAgentNotification(snapshot,context);
+    });    
+
+export const onGetAgentsSchedule = functions.firestore
+    .document('agents/{agentId}')
+    .onCreate((snapshot,context) => {
+        console.log('onGetAgentsScheduleTriggered',)
+        return tookanFunctions.GetTookanAgentSchedule(snapshot,context);
+    }); 
+    
+export const onAssignAgentsTask = functions.firestore
+    .document('agents/{agentId}')
+    .onCreate((snapshot,context) => {
+        console.log('onAssignAgentsTaskTriggered',)
+        return tookanFunctions.AssignTookanAgentTask(snapshot,context);
+    });  
+
+export const onAddCustomer = functions.firestore
+    .document('users/{customerId}')
+    .onCreate((snapshot,context) => {
+        console.log('onAddCustomerTriggered',)
+        return tookanFunctions.AddNewCustomer(snapshot,context);
+    });  
+
+export const onEditCustomer = functions.firestore
+    .document('users/{customerId}')
+    .onCreate((snapshot,context) => {
+        console.log('onEditCustomerTriggered',)
+        return tookanFunctions.EditCustomer(snapshot,context);
+    });  
+
+export const onFindCustomerWithPhone = functions.firestore
+    .document('users/{customerId}')
+    .onCreate((snapshot,context) => {
+        console.log('onFindCustomerWithPhoneTriggered',)
+        return tookanFunctions.FindCustomerWithPhone(snapshot,context);
+    });  
+
+export const onFindCustomerWithName = functions.firestore
+    .document('users/{customerId}')
+    .onCreate((snapshot,context) => {
+        console.log('onFindCustomerWithNameTriggered',)
+        return tookanFunctions.FindCustomerWithName(snapshot,context);
+    });  
+
+export const onViewCustomerProfile = functions.firestore
+    .document('users/{customerId}')
+    .onCreate((snapshot,context) => {
+        console.log('onViewCustomerProfileTriggered',)
+        return tookanFunctions.ViewTookanCustomerProfile(snapshot,context);
+    });  
+
+export const onDeleteCustomer = functions.firestore
+    .document('users/{customerId}')
+    .onCreate((snapshot,context) => {
+        console.log('onDeleteCustomerTriggered',)
+        return tookanFunctions.DeleteTookanCustomer(snapshot,context);
+    }); 
