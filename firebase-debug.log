@@ -1,0 +1,81 @@
+[debug] [2020-03-11T17:09:55.689Z] ----------------------------------------------------------------------
+[debug] [2020-03-11T17:09:55.691Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\aaryan kumar\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only functions:onAddAgents functions:onAssignTask functions:onBlockUnblockAgents functions:onDeleteAgents functions:onEditAgents functions:onEditCustomer functions:onFindCustomerWithName functions:onGetAgentsLogs functions:onGetAgentsTag functions:onTaskDelete functions:onTaskEdit functions:onTaskStatistics functions:onTaskStatus
+[debug] [2020-03-11T17:09:55.691Z] CLI Version:   7.14.0
+[debug] [2020-03-11T17:09:55.691Z] Platform:      win32
+[debug] [2020-03-11T17:09:55.691Z] Node Version:  v12.14.1
+[debug] [2020-03-11T17:09:55.693Z] Time:          Wed Mar 11 2020 22:39:55 GMT+0530 (India Standard Time)
+[debug] [2020-03-11T17:09:55.693Z] ----------------------------------------------------------------------
+[debug] [2020-03-11T17:09:55.693Z] 
+[debug] [2020-03-11T17:09:55.701Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2020-03-11T17:09:55.702Z] > authorizing via signed-in user
+[debug] [2020-03-11T17:09:55.702Z] [iam] checking project servplatform-d4668 for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2020-03-11T17:09:55.704Z] > refreshing access token with scopes: ["email","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","openid"]
+[debug] [2020-03-11T17:09:55.704Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+ <request body omitted>
+[debug] [2020-03-11T17:09:56.102Z] <<< HTTP RESPONSE 200
+[debug] [2020-03-11T17:09:56.186Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/servplatform-d4668:testIamPermissions  
+
+[debug] [2020-03-11T17:09:57.975Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Deploying to 'servplatform-d4668'...
+[info] 
+[info] i  deploying functions
+[info] Running command: npm --prefix "$RESOURCE_DIR" run lint
+[info] Running command: npm --prefix "$RESOURCE_DIR" run build
+[info] +  functions: Finished running predeploy script.
+[debug] [2020-03-11T17:10:23.110Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "lint": "tslint --project tsconfig.json",
+    "build": "tsc",
+    "serve": "npm run build && firebase serve --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "8"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^8.6.0",
+    "firebase-functions": "^3.3.0",
+    "google-gax": "^1.12.0",
+    "tookan-api": "^1.0.4"
+  },
+  "devDependencies": {
+    "tslint": "^5.12.0",
+    "typescript": "^3.2.2",
+    "firebase-functions-test": "^0.1.6"
+  },
+  "private": true
+}
+[info] i  functions: ensuring necessary APIs are enabled...
+[debug] [2020-03-11T17:10:23.112Z] >>> HTTP REQUEST GET https://serviceusage.googleapis.com/v1/projects/servplatform-d4668/services/cloudfunctions.googleapis.com  
+ 
+[debug] [2020-03-11T17:10:23.113Z] >>> HTTP REQUEST GET https://serviceusage.googleapis.com/v1/projects/servplatform-d4668/services/runtimeconfig.googleapis.com  
+ 
+[debug] [2020-03-11T17:10:27.268Z] <<< HTTP RESPONSE 200
+[debug] [2020-03-11T17:10:28.494Z] <<< HTTP RESPONSE 200
+[info] +  functions: all necessary APIs are enabled
+[debug] [2020-03-11T17:10:28.498Z] >>> HTTP REQUEST GET https://firebase.googleapis.com/v1beta1/projects/servplatform-d4668/adminSdkConfig  
+ 
+[debug] [2020-03-11T17:10:30.249Z] <<< HTTP RESPONSE 200
+[info] i  functions: preparing functions directory for uploading...
+[debug] [2020-03-11T17:10:30.259Z] >>> HTTP REQUEST GET https://runtimeconfig.googleapis.com/v1beta1/projects/servplatform-d4668/configs  
+ 
+[debug] [2020-03-11T17:10:33.233Z] <<< HTTP RESPONSE 200
+[info] i  functions: packaged functions (61.1 KB) for uploading
+[debug] [2020-03-11T17:10:33.765Z] >>> HTTP REQUEST POST https://cloudfunctions.googleapis.com/v1/projects/servplatform-d4668/locations/us-central1/functions:generateUploadUrl  
+ 
+[debug] [2020-03-11T17:10:36.208Z] <<< HTTP RESPONSE 200
+[debug] [2020-03-11T17:10:36.208Z] >>> HTTP REQUEST PUT https://storage.googleapis.com/gcf-upload-us-central1-1af3cd0e-9fd7-49b7-8c62-742893ffe2e7/4e074328-e821-4ca1-9bee-74a3096cded4.zip?GoogleAccessId=service-563574805348@gcf-admin-robot.iam.gserviceaccount.com&Expires=1583948437&Signature=fdyS2ZM3%2Byy6MuuMmo8stvXTnl1FThw0UbjJZTeb7cmO0FbwYKli0YdFUcVFX55nrkgBaj0CTtNjhgqknMjkHAfaGQ4ItxFRjv5wSoozA0LAY5pkjxhO%2B2QISAgxxevNn4%2BuRCOYFKbCjZZ%2F9FhMkOoHDZ54VbLMHVhEIDa1o5jNEUshX1CCkqBSudguIy5%2FERBkXJfdPKRCWU4qDPgbDSxJYYqWt7V1%2FZkiwTHpsevLQOimvQfUGfPTFeDnyNi4JrJBdjfZoJfNiHLKG%2BLRiL7NwdG6BbCIBPm%2BKnhYu5C3b9dpe4aDBhF9jGs7PdhxYkoOZ6xg5LkI%2Bulz715mCA%3D%3D  
+ <request body omitted>
+[debug] [2020-03-11T17:10:38.614Z] <<< HTTP RESPONSE 200
+[info] +  functions: functions folder uploaded successfully
+[debug] [2020-03-11T17:10:38.617Z] >>> HTTP REQUEST GET https://cloudfunctions.googleapis.com/v1/projects/servplatform-d4668/locations/-/functions  
+ 
+[debug] [2020-03-11T17:10:39.620Z] <<< HTTP RESPONSE 200
+[error] 
+[error] Error: Some Cloud Functions regions were unreachable, please try again later.
