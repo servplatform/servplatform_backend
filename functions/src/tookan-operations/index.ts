@@ -18,7 +18,7 @@ export async function createTookanTask(snapshot, context) {
         order_id:newValue.order_id,
         job_description:newValue.job_description,
         job_pickup_email:newValue.job_pickup_email,
-        job_pickup_name:newValue.job_pickup_email,
+        job_pickup_name:newValue.job_pickup_name,
         job_pickup_phone:newValue.job_pickup_phone,
         job_pickup_address:newValue.job_pickup_address,
         job_pickup_latitude:newValue.job_pickup_latitude,
