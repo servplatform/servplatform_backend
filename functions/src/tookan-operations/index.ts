@@ -17,15 +17,15 @@ export async function createTookanTask(snapshot, context) {
         api_key:TOOKAN_API_KEY,
         order_id:newValue.order_id,
         job_description:newValue.job_description,
-        customer_email:newValue.customer_email,
-        customer_username:newValue.customer_username,
-        customer_phone:newValue.customer_phone,
-        customer_address:newValue.customer_address,
-        latitude:newValue.latitude,
-        longitude:newValue.longitude,
-        job_delivery_datetime:newValue.job_delivery_datetime,
-        custom_field_template:newValue.custom_field_template,
-        meta_data:newValue.pickup_meta_data,
+        job_pickup_email:newValue.job_pickup_email,
+        job_pickup_name:newValue.job_pickup_email,
+        job_pickup_phone:newValue.job_pickup_phone,
+        job_pickup_address:newValue.job_pickup_address,
+        job_pickup_latitude:newValue.job_pickup_latitude,
+        job_pickup_longitude:newValue.job_pickup_longitude,
+        job_pickup_datetime:newValue.job_pickup_datetime,
+        pickup_custom_field_template:newValue.pickup_custom_field_template,
+        pickup_meta_data:newValue.pickup_meta_data,
         team_id:newValue.team_id,
         auto_assignment:newValue.auto_assignment,
         has_pickup:newValue.has_pickup,
@@ -34,10 +34,10 @@ export async function createTookanTask(snapshot, context) {
         tracking_link:newValue.tracking_link,
         timezone:newValue.timezone,
         fleet_id:newValue.fleet_id,
-        ref_images:newValue.p_ref_images,
+        p_ref_images:newValue.p_ref_images,
         notify:newValue.notify,
         tags:newValue.tags,
-        geofence:newValue.geofencing
+        geofence:newValue.geofence
     };
     //Create task in tookan
     console.log('Creating tookan task for options: ', options);
