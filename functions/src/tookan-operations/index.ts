@@ -24,7 +24,7 @@ export async function createTookanTask(snapshot, context) {
         latitude:newValue.latitude,
         longitude:newValue.longitude,
         job_delivery_datetime:newValue.job_delivery_datetime,
-        pickup_custom_field_template:newValue.pickup_custom_field_template,
+        custom_field_template:newValue.custom_field_template,
         pickup_meta_data:newValue.pickup_meta_data,
         team_id:newValue.team_id,
         auto_assignment:newValue.auto_assignment,
