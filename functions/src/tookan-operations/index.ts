@@ -17,13 +17,13 @@ export async function createTookanTask(snapshot, context) {
         api_key:TOOKAN_API_KEY,
         order_id:newValue.order_id,
         job_description:newValue.job_description,
-        job_pickup_email:newValue.job_pickup_email,
-        job_pickup_name:newValue.job_pickup_name,
-        job_pickup_phone:newValue.job_pickup_phone,
-        job_pickup_address:newValue.job_pickup_address,
-        job_pickup_latitude:newValue.job_pickup_latitude,
-        job_pickup_longitude:newValue.job_pickup_longitude,
-        job_pickup_datetime:newValue.job_pickup_datetime,
+        customer_email:newValue.job_pickup_email,
+        customer_username:newValue.job_pickup_name,
+        customer_phone:newValue.job_pickup_phone,
+        customer_address:newValue.job_pickup_address,
+        latitude:newValue.job_pickup_latitude,
+        longitude:newValue.job_pickup_longitude,
+        job_delivery_datetime:newValue.job_pickup_datetime,
         pickup_custom_field_template:newValue.pickup_custom_field_template,
         pickup_meta_data:newValue.pickup_meta_data,
         team_id:newValue.team_id,
@@ -40,8 +40,8 @@ export async function createTookanTask(snapshot, context) {
         geofence:newValue.geofence
     };
     //Create task in tookan
-    console.log('Creating tookan task for options: ', options);
     return client.createTask(options).then(res => {
+        console.log('Creating tookan task for options: ', options);
         return updateTaskOnTaskCreate(res,taskId);   
     })
     .catch(err => {
