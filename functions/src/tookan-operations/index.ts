@@ -37,7 +37,8 @@ export async function createTookanTask(snapshot, context) {
         p_ref_images:newValue.p_ref_images,
         notify:newValue.notify,
         tags:newValue.tags,
-        geofence:newValue.geofence
+        geofence:newValue.geofence,
+        job_pickup_phone:newValue.job_pickup_phone
     };
     //Create task in tookan
     return client.createTask(options).then(res => {
