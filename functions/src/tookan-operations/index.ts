@@ -24,7 +24,7 @@ export async function createTookanTask(snapshot, context) {
         latitude:newValue.latitude,
         longitude:newValue.longitude,
         job_delivery_datetime:newValue.job_delivery_datetime,
-        custom_field_template:newValue.custom_field_template,
+        custom_field_template:newValue,
         pickup_meta_data:newValue.pickup_meta_data,
         team_id:newValue.team_id,
         auto_assignment:newValue.auto_assignment,
@@ -51,7 +51,7 @@ export async function createTookanTask(snapshot, context) {
 }
 
 async function updateTaskOnTaskCreate (res,taskId): Promise<string> {
-    console.log("Tookan task created with response successfully for taskId: ",taskId,"Response received from tookan: ",res);
+    console.log("Tookan task created with response successfully for taskId: ",taskId,"Response received from tookan: ",res.data());
     console.log("Update Task based on response for taskId started",taskId);
     console.log("Updated content for task_id ",taskId,"content: ",res.data());
     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
