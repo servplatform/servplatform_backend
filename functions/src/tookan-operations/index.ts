@@ -42,7 +42,7 @@ export async function createTookanTask(snapshot, context) {
     };
     //Create task in tookan
     return client.createTask(options).then(res => {
-        console.log('Creating tookan task for options: ', options);
+        console.log("Creating tookan task for options: ", options);
         return updateTaskOnTaskCreate(res,taskId);   
     })
     .catch(err => {
