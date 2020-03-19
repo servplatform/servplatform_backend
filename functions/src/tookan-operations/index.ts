@@ -55,7 +55,7 @@ async function updateTaskOnTaskCreate (res,taskId): Promise<string> {
     console.log("Update Task based on response for taskId started",taskId);
     console.log("Updated content for task_id ",taskId,"content: ",res.data());
     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
-    taskRef.set(res.data).then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err));
 	return taskId
 }
 

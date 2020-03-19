@@ -16,7 +16,7 @@ export const firestoreInstance = admin.firestore();
 export const onTaskCreate = functions.firestore
     .document('tasks/{taskId}')
     .onCreate((snapshot,context) => {
-        console.log('onTaskCreateTriggered',)
+        console.log('onTaskCreateTriggered')
         return tookanFunctions.createTookanTask(snapshot,context);
     });
  
