@@ -25,7 +25,7 @@ export async function createTookanTask(snapshot, context) {
         longitude:newValue.longitude,
         job_delivery_datetime:newValue.job_delivery_datetime,
         custom_field_template:newValue.custom_field_template,
-        meta_data:newValue.pickup_meta_data,
+        meta_data:newValue.meta_data,
         team_id:newValue.team_id,
         auto_assignment:newValue.auto_assignment,
         has_pickup:newValue.has_pickup,
@@ -34,10 +34,11 @@ export async function createTookanTask(snapshot, context) {
         tracking_link:newValue.tracking_link,
         timezone:newValue.timezone,
         fleet_id:newValue.fleet_id,
-        ref_images:newValue.p_ref_images,
+        ref_images:newValue.ref_images,
         notify:newValue.notify,
         tags:newValue.tags,
-        geofence:newValue.geofencing
+        geofence:newValue.geofence,
+        
     };
     //Create task in tookan
     console.log('Creating tookan task for options: ', options);
@@ -67,23 +68,31 @@ export async function edittookantask(snapshot, context) {
     console.log('Triggering Edit Tookan task for task id ', taskId, newValue);
 
     const options = {
-        customer_email: newValue.customer_email,
-        customer_username: newValue.customer_username,
-        customer_phone: newValue.customer_phone,
-        customer_address: newValue.customer_address,
-        latitude: newValue.latitude,
-        longitude: newValue.longitude,
-        job_description: newValue.job_description,
-        job_pickup_datetime: newValue.job_pickup_datetime,
-        job_delivery_datetime: newValue.job_delivery_datetime,
-        has_pickup: newValue.has_pickup,
-        has_delivery: newValue.has_delivery,
-        layout_type: newValue.layout_type,
-        tracking_link: newValue.tracking_link,
-        timezone: newValue.timezone,
-        api_key: TOOKAN_API_KEY,
+        api_key:TOOKAN_API_KEY,
+        order_id:newValue.order_id,
+        job_description:newValue.job_description,
+        customer_email:newValue.customer_email,
+        customer_username:newValue.customer_username,
+        customer_phone:newValue.customer_phone,
+        customer_address:newValue.customer_address,
+        latitude:newValue.latitude,
+        longitude:newValue.longitude,
+        job_delivery_datetime:newValue.job_delivery_datetime,
+        custom_field_template:newValue.custom_field_template,
+        meta_data:newValue.meta_data,
+        team_id:newValue.team_id,
+        auto_assignment:newValue.auto_assignment,
+        has_pickup:newValue.has_pickup,
+        has_delivery:newValue.has_delivery,
+        layout_type:newValue.layout_type,
+        tracking_link:newValue.tracking_link,
+        timezone:newValue.timezone,
+        fleet_id:newValue.fleet_id,
+        ref_images:newValue.ref_images,
+        notify:newValue.notify,
+        tags:newValue.tags,
+        geofence:newValue.geofence,
         job_id: newValue.job_id,
-        notify: newValue.notify
       };
     //Edit task in tookan
     console.log('Editing tookan task for options: ', options);
@@ -210,7 +219,7 @@ export async function Canceltookantask(snapshot, context) {
     const options = {
         api_key: TOOKAN_API_KEY,
         job_id: newValue.job_id,
-        job_status: newValue.job_status
+        job_status: newValue.job_status //9
       };
     //Cancel task in tookan
     console.log('Cancelling tookan task for options: ', options);
@@ -306,7 +315,10 @@ export async function GettookantaskStatistics(snapshot, context) {
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        job_status: newValue.job_status
+        job_status: newValue.job_status,
+        job_type:newValue.job_type,
+        start_date:newValue.start_date,
+        end_date:newValue.end_date
       };
     //Get task Statistics in tookan
     console.log('Getting tookan task Statistics for options: ', options);
@@ -385,7 +397,8 @@ export async function AddTookanAgents(snapshot, context) {
         username: newValue.username,
         first_name: newValue.first_name,
         last_name: newValue.last_name,
-        rule_id: newValue.rule_id
+        rule_id: newValue.rule_id,
+        fleet_type:newValue.fleet_type,
       };
     //Add agents in tookan
     console.log('Adding tookan agents for options: ', options);
@@ -428,7 +441,8 @@ export async function EditTookanAgents(snapshot, context) {
         password: newValue.password,
         first_name: newValue.first_name,
         last_name: newValue.last_name,
-        rule_id: newValue.rule_id
+        rule_id: newValue.rule_id,
+        fleet_type:newValue.fleet_type
       };
     //Edit agents in tookan
     console.log('Editing tookan agents for options: ', options);
@@ -460,7 +474,8 @@ export async function BlockorUnblockTookanAgents(snapshot, context) {
     const options = {
         api_key: TOOKAN_API_KEY,
         fleet_id: newValue.fleet_id,
-        block_status: newValue.block_status
+        block_status: newValue.block_status,
+        unblock_on_date:newValue.unblock_on_date
       };
     
       //Block or Unblock agents in tookan
@@ -590,6 +605,8 @@ export async function GetTookanAgentTags(snapshot, context) {
     const options = {
         api_key: TOOKAN_API_KEY,
         fleet_id: newValue.fleet_id,
+        team_id:newValue.team_id
+
       };
     
       //Get agents tags in tookan
@@ -962,7 +979,7 @@ export async function DeleteTookanCustomer(snapshot, context) {
 
     const options = {
       api_key: TOOKAN_API_KEY,
-      customer_id: newValue.user_id
+      customer_id: newValue.customer_id
     };
     
       //Deleting customers in tookan
@@ -1229,7 +1246,7 @@ async function MerchantBlockUnblock(res,merchantId): Promise<string> {
 	return merchantId
 }
 
-export async function AvailableMerchantAgents(snapshot, context) {
+export async function AvailableMerchantAgents(snapshot, context) {//how?
     
     const merchantId = context.params.customerId;
     const newValue = snapshot.data();
@@ -1277,9 +1294,9 @@ export async function AssignMerchantAgentsTask(snapshot, context) {
         job_id: newValue.job_id,
         team_id: newValue.team_id,
         fleet_id: newValue.fleet_id,
-        notify: newValue.notify,
-        geofence: newValue.geofence,
-        job_status: newValue.job_status
+        job_status: newValue.job_status,
+        notify:newValue.notify,
+        geofence:newValue.geofence
       };
     
       //Assigning tasks to merchant agents in tookan
