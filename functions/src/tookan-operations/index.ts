@@ -3,7 +3,7 @@ import {
 } from "../constants";
 import {firestoreInstance} from "../index";
 import * as Tookan from "tookan-api";
-const client = new Tookan.Client({api_key: TOOKAN_API_KEY});
+const client = new Tookan.Client({api_key:TOOKAN_API_KEY});
 
 export async function createTookanTask(snapshot, context) {
     
@@ -12,7 +12,6 @@ export async function createTookanTask(snapshot, context) {
     
 
     console.log('Triggering Create Tookan task for task id ', taskId, newValue);
-
     const options = {
         api_key:TOOKAN_API_KEY,
         order_id:newValue.order_id,
@@ -38,6 +37,7 @@ export async function createTookanTask(snapshot, context) {
         notify:newValue.notify,
         tags:newValue.tags,
         geofence:newValue.geofence,
+        //ref_images:["http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png(2 kB) http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png","http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png(2 kB) http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png"],
         
     };
     //Create task in tookan
