@@ -58,7 +58,6 @@ async function updateTaskOnTaskCreate (res,taskId): Promise<string> {
     taskRef.set(res.data()).then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err));
 	return taskId
 }
-
 export async function edittookantask(snapshot, context) {
     
     const taskId = context.params.taskId;
@@ -107,9 +106,7 @@ export async function edittookantask(snapshot, context) {
 async function updateTaskOnTaskEdit (res,taskId): Promise<string> {
     console.log("Tookan task edited with response successfully for taskId: ",taskId,"Response received from tookan: ",res);
     console.log("Update Task based on response for taskId started",taskId);
-    console.log("Updated content for task_id ",taskId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
-    taskRef.set(res.data).then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err));
+    console.log("Updated content for task_id ",taskId,"content: ",res.data().then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err)));
 	return taskId
 }
 
@@ -140,7 +137,7 @@ async function updateTaskDeletion (res,taskId): Promise<string> {
     console.log("Deleting Task based on response for taskId started",taskId);
     console.log("Task Deleted for task_id ",taskId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
-    taskRef.set(res.data).then(() => console.log("task deleted based on tookan response for taskId:", taskId)).catch(err => console.log("Task Deletion based on task id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("task deleted based on tookan response for taskId:", taskId)).catch(err => console.log("Task Deletion based on task id failed for: " + err));
 	return taskId
 }
 
@@ -172,7 +169,7 @@ async function updateTookanTaskStatus(res,taskId): Promise<string> {
     console.log("Update Task status based on response for taskId started",taskId);
     console.log("Updated content for task_id ",taskId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
-    taskRef.set(res.data).then(() => console.log("task status updated based on tookan response for taskId:", taskId)).catch(err => console.log("Updating task status based on task id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("task status updated based on tookan response for taskId:", taskId)).catch(err => console.log("Updating task status based on task id failed for: " + err));
 	return taskId
 }
 
@@ -204,7 +201,7 @@ async function tookantaskstart(res,taskId): Promise<string> {
     console.log("Update Task based on response for taskId started",taskId);
     console.log("Updated content for task_id ",taskId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
-    taskRef.set(res.data).then(() => console.log("task started based on tookan response for taskId:", taskId)).catch(err => console.log("Task Start based on task id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("task started based on tookan response for taskId:", taskId)).catch(err => console.log("Task Start based on task id failed for: " + err));
 	return taskId
 }
 
@@ -236,7 +233,7 @@ async function tookantaskcancel(res,taskId): Promise<string> {
     console.log("Cancel Task based on response for taskId started",taskId);
     console.log("Cancelled content for task_id ",taskId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
-    taskRef.set(res.data).then(() => console.log("task cancelled based on tookan response for taskId:", taskId)).catch(err => console.log("Task Cancelled based on task id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("task cancelled based on tookan response for taskId:", taskId)).catch(err => console.log("Task Cancelled based on task id failed for: " + err));
 	return taskId
 }
 
@@ -270,7 +267,7 @@ async function tookantaskassign(res,taskId): Promise<string> {
     console.log("Assign Task based on response for taskId started",taskId);
     console.log("Task assigned for task_id ",taskId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
-    taskRef.set(res.data).then(() => console.log("task assigned based on tookan response for taskId:", taskId)).catch(err => console.log("Task assigned based on task id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("task assigned based on tookan response for taskId:", taskId)).catch(err => console.log("Task assigned based on task id failed for: " + err));
 	return taskId
 }
 
@@ -301,7 +298,7 @@ async function tookantaskautoassign(res,taskId): Promise<string> {
     console.log("Auto Assigning Task based on response for taskId started",taskId);
     console.log("Task auto assigned for task_id ",taskId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
-    taskRef.set(res.data).then(() => console.log("task auto assigned based on tookan response for taskId:", taskId)).catch(err => console.log("Task auto assigned based on task id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("task auto assigned based on tookan response for taskId:", taskId)).catch(err => console.log("Task auto assigned based on task id failed for: " + err));
 	return taskId
 }
 
@@ -335,7 +332,7 @@ async function tookantaskstatistics(res,taskId): Promise<string> {
     console.log("Getting Task Statistics based on response for taskId started",taskId);
     console.log("Task Statistics calculated for task_id ",taskId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
-    taskRef.set(res.data).then(() => console.log("Task Statistics calculated based on tookan response for taskId:", taskId)).catch(err => console.log("Task Statistics Calculated based on task id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Task Statistics calculated based on tookan response for taskId:", taskId)).catch(err => console.log("Task Statistics Calculated based on task id failed for: " + err));
 	return taskId
 }
 
@@ -371,7 +368,7 @@ async function tookangetallagents(res,agentId): Promise<string> {
     console.log("Getting all agents based on response for agentId started",agentId);
     console.log("All agents for agent_id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data).then(() => console.log("Getting all agents based on agent Id:", agentId)).catch(err => console.log("Getting all agents based on agent id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Getting all agents based on agent Id:", agentId)).catch(err => console.log("Getting all agents based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -415,7 +412,7 @@ async function tookanaddagents(res,agentId): Promise<string> {
     console.log("Adding agents based on response for agentId started",agentId);
     console.log("Agent added for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data).then(() => console.log("Adding agents based on agent Id:", agentId)).catch(err => console.log("Update agents based on agent id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Adding agents based on agent Id:", agentId)).catch(err => console.log("Update agents based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -459,7 +456,7 @@ async function tookaneditagents(res,agentId): Promise<string> {
     console.log("Editing agents information based on response for agentId started",agentId);
     console.log("Agent information edited for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data).then(() => console.log("Editing agent information based on agent Id:", agentId)).catch(err => console.log("Editing agents information based on agent id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Editing agent information based on agent Id:", agentId)).catch(err => console.log("Editing agents information based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -493,7 +490,7 @@ async function tookanblockorunblockagents(res,agentId): Promise<string> {
     console.log("Blocking or Unblocking agent based on response for agentId started",agentId);
     console.log("Agent blocked or unblocked for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data).then(() => console.log("Editing agent block/unblock status based on agent Id:", agentId)).catch(err => console.log("Editing agents block/unblock status based on agent id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Editing agent block/unblock status based on agent Id:", agentId)).catch(err => console.log("Editing agents block/unblock status based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -525,7 +522,7 @@ async function tookandeleteagents(res,agentId): Promise<string> {
     console.log("Deleting agent based on response for agentId started",agentId);
     console.log("Agent Deleted for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data).then(() => console.log("Deleting agent successfully based on agent Id:", agentId)).catch(err => console.log("Deleting agents based on agent id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Deleting agent successfully based on agent Id:", agentId)).catch(err => console.log("Deleting agents based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -557,7 +554,7 @@ async function tookanviewagentsprofile(res,agentId): Promise<string> {
     console.log("Viewing agent profile based on response for agentId started",agentId);
     console.log("Agent profile viewed for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data).then(() => console.log("Profile of tookan agent viewed successfully based for agent Id:", agentId)).catch(err => console.log("Viewing agents profile based on agent id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Profile of tookan agent viewed successfully based for agent Id:", agentId)).catch(err => console.log("Viewing agents profile based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -590,7 +587,7 @@ async function tookanupdateagenttags(res,agentId): Promise<string> {
     console.log("Updating agent tags based on response for agentId started",agentId);
     console.log("Agent tags updated for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data).then(() => console.log("Tags of tookan agent updated successfully based on agent Id:", agentId)).catch(err => console.log("Updating agents tags based on agent id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Tags of tookan agent updated successfully based on agent Id:", agentId)).catch(err => console.log("Updating agents tags based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -624,7 +621,7 @@ async function tookangetagenttags(res,agentId): Promise<string> {
     console.log("Get agent tags based on response for agentId started",agentId);
     console.log("Agent tags viewed for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data).then(() => console.log("Tags of tookan agent viewed successfully based on agent Id:", agentId)).catch(err => console.log("Getting agents tags based on agent id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Tags of tookan agent viewed successfully based on agent Id:", agentId)).catch(err => console.log("Getting agents tags based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -657,7 +654,7 @@ async function tookangetagentlogs(res,agentId): Promise<string> {
     console.log("Get agent logs based on response for agentId started",agentId);
     console.log("Agent logs viewed for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data).then(() => console.log("Logs of tookan agent viewed successfully based on agent Id:", agentId)).catch(err => console.log("Getting agents logs based on agent id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Logs of tookan agent viewed successfully based on agent Id:", agentId)).catch(err => console.log("Getting agents logs based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -689,7 +686,7 @@ async function tookangetagentlocation(res,agentId): Promise<string> {
     console.log("Get agent location based on response for agentId started",agentId);
     console.log("Agent location viewed for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data).then(() => console.log("Location of tookan agent viewed successfully based on agent Id:", agentId)).catch(err => console.log("Getting agents location based on agent id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Location of tookan agent viewed successfully based on agent Id:", agentId)).catch(err => console.log("Getting agents location based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -722,7 +719,7 @@ async function tookannotificationstoagents(res,agentId): Promise<string> {
     console.log("Sending Notifications to agent based on response for agentId started",agentId);
     console.log("Notification sent to agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data).then(() => console.log("Notification to tookan agent sent successfully based on agent Id:", agentId)).catch(err => console.log(" Sending Notifications task based on agent id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Notification to tookan agent sent successfully based on agent Id:", agentId)).catch(err => console.log(" Sending Notifications task based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -755,7 +752,7 @@ async function tookangetagentschedule(res,agentId): Promise<string> {
     console.log("Viewing agent Schedule based on response for agentId started",agentId);
     console.log("Schedule seen for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data).then(() => console.log("Schedule of tookan agent seen successfully based on agent Id:", agentId)).catch(err => console.log(" Getting Schedule based on agent id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Schedule of tookan agent seen successfully based on agent Id:", agentId)).catch(err => console.log(" Getting Schedule based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -792,7 +789,7 @@ async function assigntasktoagent(res,agentId): Promise<string> {
     console.log("Assigning agent task based on response for agentId started",agentId);
     console.log("Task assigned to agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data).then(() => console.log("Task assigned successfully based on agent Id:", agentId)).catch(err => console.log("Task assigning based on agent id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Task assigned successfully based on agent Id:", agentId)).catch(err => console.log("Task assigning based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -830,7 +827,7 @@ async function CustomerAdd(res,customerId): Promise<string> {
     console.log("Adding customers based on response for customerId started",customerId);
     console.log("Customer added for customerid ",customerId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(USERS).doc(customerId);
-    taskRef.set(res.data).then(() => console.log("Customer added based on customer Id:", customerId)).catch(err => console.log("Adding customer based on customer id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Customer added based on customer Id:", customerId)).catch(err => console.log("Adding customer based on customer id failed for: " + err));
 	return customerId
 }
 
@@ -869,7 +866,7 @@ async function CustomerEdit(res,customerId): Promise<string> {
     console.log("Editing customers based on response for customerId started",customerId);
     console.log("Customer edited for customerid ",customerId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(USERS).doc(customerId);
-    taskRef.set(res.data).then(() => console.log("Customer edited based on customer Id:", customerId)).catch(err => console.log("Editing customer based on customer id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Customer edited based on customer Id:", customerId)).catch(err => console.log("Editing customer based on customer id failed for: " + err));
 	return customerId
 }
 
@@ -901,7 +898,7 @@ async function Customerwithphone(res,customerId): Promise<string> {
     console.log("Finding customers with phone based on response for customerId started",customerId);
     console.log("Finding customers with phone for customerid ",customerId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(USERS).doc(customerId);
-    taskRef.set(res.data).then(() => console.log("Finding customers with phone based on customer Id:", customerId)).catch(err => console.log("Finding customer with phone based on customer id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Finding customers with phone based on customer Id:", customerId)).catch(err => console.log("Finding customer with phone based on customer id failed for: " + err));
 	return customerId
 }
 
@@ -933,7 +930,7 @@ async function Customerwithname(res,customerId): Promise<string> {
     console.log("Finding customers with name based on response for customerId started",customerId);
     console.log("Finding customers with name ",customerId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(USERS).doc(customerId);
-    taskRef.set(res.data).then(() => console.log("Finding customers with name based on customer Id:", customerId)).catch(err => console.log("Finding customer with name based on customer id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Finding customers with name based on customer Id:", customerId)).catch(err => console.log("Finding customer with name based on customer id failed for: " + err));
 	return customerId
 }
 
@@ -965,7 +962,7 @@ async function Customerprofile(res,customerId): Promise<string> {
     console.log("Viewing customers profile based on response for customerId started",customerId);
     console.log("Viewing customers profile for customer Id ",customerId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(USERS).doc(customerId);
-    taskRef.set(res.data).then(() => console.log("Viewing customers profile for customer Id:", customerId)).catch(err => console.log("Viewing customer profile for customer id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Viewing customers profile for customer Id:", customerId)).catch(err => console.log("Viewing customer profile for customer id failed for: " + err));
 	return customerId
 }
 
@@ -997,7 +994,7 @@ async function CustomerDelete(res,customerId): Promise<string> {
     console.log("Deleting customers based on response for customerId started",customerId);
     console.log("Deleting customers for customer Id ",customerId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(USERS).doc(customerId);
-    taskRef.set(res.data).then(() => console.log("Deleting customers for customer Id:", customerId)).catch(err => console.log("Deleting customer for customer id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Deleting customers for customer Id:", customerId)).catch(err => console.log("Deleting customer for customer id failed for: " + err));
 	return customerId
 }
 
@@ -1055,7 +1052,7 @@ async function NewMerchant(res,merchantId): Promise<string> {
     console.log("Creating new merchants based on response for merchantId started",merchantId);
     console.log("Creating new merchants for merchant Id ",merchantId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data).then(() => console.log("Creating new merchants for merchant Id:", merchantId)).catch(err => console.log("Creating new merchants for merchant id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Creating new merchants for merchant Id:", merchantId)).catch(err => console.log("Creating new merchants for merchant id failed for: " + err));
 	return merchantId
 }
 
@@ -1112,7 +1109,7 @@ async function MerchantEdit(res,merchantId): Promise<string> {
     console.log("Editing merchants based on response for merchantId started",merchantId);
     console.log("Editing merchants for merchant Id ",merchantId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data).then(() => console.log("Editing merchants for merchant Id:", merchantId)).catch(err => console.log("Editing merchants for merchant id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Editing merchants for merchant Id:", merchantId)).catch(err => console.log("Editing merchants for merchant id failed for: " + err));
 	return merchantId
 }
 
@@ -1144,7 +1141,7 @@ async function MerchantView(res,merchantId): Promise<string> {
     console.log("Viewing merchants based on response for merchantId started",merchantId);
     console.log("Viewing merchants for merchant Id ",merchantId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data).then(() => console.log("Viewing merchants for merchant Id:", merchantId)).catch(err => console.log("Viewing merchants for merchant id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Viewing merchants for merchant Id:", merchantId)).catch(err => console.log("Viewing merchants for merchant id failed for: " + err));
 	return merchantId
 }
 
@@ -1176,7 +1173,7 @@ async function MerchantDetails(res,merchantId): Promise<string> {
     console.log("Getting merchants details based on response for merchantId started",merchantId);
     console.log("Getting merchants details for merchant Id ",merchantId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data).then(() => console.log("Getting merchants details for merchant Id:", merchantId)).catch(err => console.log("Getting merchants details for merchant id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Getting merchants details for merchant Id:", merchantId)).catch(err => console.log("Getting merchants details for merchant id failed for: " + err));
 	return merchantId
 }
 
@@ -1209,7 +1206,7 @@ async function MerchantReports(res,merchantId): Promise<string> {
     console.log("Getting merchants reports based on response for merchantId started",merchantId);
     console.log("Getting merchants reports for merchant Id ",merchantId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data).then(() => console.log("Getting merchants reports for merchant Id:", merchantId)).catch(err => console.log("Getting merchants reports for merchant id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Getting merchants reports for merchant Id:", merchantId)).catch(err => console.log("Getting merchants reports for merchant id failed for: " + err));
 	return merchantId
 }
 
@@ -1242,7 +1239,7 @@ async function MerchantBlockUnblock(res,merchantId): Promise<string> {
     console.log("Blocking/Unblocking merchants based on response for merchantId started",merchantId);
     console.log("Blocking/Unblocking merchants for merchant Id ",merchantId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data).then(() => console.log("Blocking/Unblocking merchants for merchant Id:", merchantId)).catch(err => console.log("Blocking/Unblocking merchants for merchant id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Blocking/Unblocking merchants for merchant Id:", merchantId)).catch(err => console.log("Blocking/Unblocking merchants for merchant id failed for: " + err));
 	return merchantId
 }
 
@@ -1276,7 +1273,7 @@ async function MerchantAvailableAgents(res,merchantId): Promise<string> {
     console.log("Getting Available merchants agents based on response for merchantId started",merchantId);
     console.log("Getting Available merchants agents for merchant Id ",merchantId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data).then(() => console.log("Getting Available merchants agents for merchant Id:", merchantId)).catch(err => console.log("Getting Available merchants agents for merchant id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Getting Available merchants agents for merchant Id:", merchantId)).catch(err => console.log("Getting Available merchants agents for merchant id failed for: " + err));
 	return merchantId
 }
 
@@ -1314,6 +1311,6 @@ async function MerchantTasktoAgents(res,merchantId): Promise<string> {
     console.log("Assigning tasks to merchant agents based on response for merchantId started",merchantId);
     console.log("Assigning tasks to merchant agents for merchant Id ",merchantId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data).then(() => console.log("Assigning tasks to merchant agents for merchant Id:", merchantId)).catch(err => console.log("Assigning tasks to merchant agents for merchant id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("Assigning tasks to merchant agents for merchant Id:", merchantId)).catch(err => console.log("Assigning tasks to merchant agents for merchant id failed for: " + err));
 	return merchantId
 }
