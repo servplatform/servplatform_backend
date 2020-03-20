@@ -8,7 +8,7 @@ const client = new Tookan.Client({api_key:TOOKAN_API_KEY});
 export async function createTookanTask(snapshot, context) {
     
     const taskId = context.params.taskId;
-    const newValue = snapshot.data();
+    const newValue = snapshot.data;
     
 
     console.log('Triggering Create Tookan task for task id ', taskId, newValue);
@@ -53,9 +53,9 @@ export async function createTookanTask(snapshot, context) {
 async function updateTaskOnTaskCreate (res,taskId): Promise<string> {
     console.log("Tookan task created with response successfully for taskId: ",taskId,"Response received from tookan: ",res);
     console.log("Update Task based on response for taskId started",taskId);
-    console.log("Updated content for task_id ",taskId,"content: ",res.data());
+    console.log("Updated content for task_id ",taskId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
-    taskRef.set(res.data()).then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err));
+    taskRef.set(res.data.then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err)));
 	return taskId
 }
 export async function edittookantask(snapshot, context) {
