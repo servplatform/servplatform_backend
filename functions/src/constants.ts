@@ -1,5 +1,5 @@
 export let MAX_BATCH_SIZE = 500;
-export let TOOKAN_API_KEY = '51626086f5404f0149556b7b1047254314e7cdfe2eda7f375f1d03';
+export let TOOKAN_API_KEY = 'd35f54fceda7c77bd37282c3737d5c03';
 export let PRIV_USER_DATA = 'PrivateUserData';
 export let PUBLIC_USER_DATA = 'PublicUserData';
 export let ORDERS = 'orders';
