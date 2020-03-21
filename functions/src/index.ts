@@ -21,56 +21,56 @@ export const onTaskCreate = functions.firestore
     });
  
 export const onTaskEdit = functions.firestore
-    .document('task/{taskId}')
-    .onCreate((snapshot,context) => {
+    .document('tasks/{taskId}')
+    .onUpdate((snapshot,context) => {
         console.log('onTaskEditTriggered',)
         return tookanFunctions.edittookantask(snapshot,context);
     });    
 
 export const onTaskDelete = functions.firestore
-    .document('task/{taskId}')
-    .onCreate((snapshot,context) => {
+    .document('tasks/{taskId}')
+    .onDelete((snapshot,context) => {
         console.log('onTaskDeleteTriggered',)
         return tookanFunctions.deleteTookanTask(snapshot,context);
     }); 
 
 export const onTaskStatus = functions.firestore
-    .document('task/{taskId}')
+    .document('tasks/{taskId}')
     .onCreate((snapshot,context) => {
         console.log('onTaskStatusTriggered',)
         return tookanFunctions.updateTookanTaskstatus(snapshot,context);
     }); 
 
 export const onStartTask = functions.firestore
-    .document('task/{taskId}')
+    .document('tasks/{taskId}')
     .onCreate((snapshot,context) => {
         console.log('onStartTaskTriggered',)
         return tookanFunctions.Starttookantask(snapshot,context);
     }); 
 
 export const onCancelTask = functions.firestore
-    .document('task/{taskId}')
+    .document('tasks/{taskId}')
     .onCreate((snapshot,context) => {
         console.log('onCancelTaskTriggered',)
         return tookanFunctions.Canceltookantask(snapshot,context);
     }); 
 
 export const onAssignTask = functions.firestore
-    .document('task/{taskId}')
+    .document('tasks/{taskId}')
     .onCreate((snapshot,context) => {
         console.log('onAssignTaskTriggered',)
         return tookanFunctions.Assigntookantask(snapshot,context);
     }); 
 
 export const onAutoAssignTask = functions.firestore
-    .document('task/{taskId}')
+    .document('tasks/{taskId}')
     .onCreate((snapshot,context) => {
         console.log('onAutoAssignTaskTriggered',)
         return tookanFunctions.AutoAssigntookantask(snapshot,context);
     }); 
 
 export const onTaskStatistics = functions.firestore
-    .document('task/{taskId}')
+    .document('tasks/{taskId}')
     .onCreate((snapshot,context) => {
         console.log('onTaskStatisticsTriggered',)
         return tookanFunctions.GettookantaskStatistics(snapshot,context);
@@ -92,7 +92,7 @@ export const onAddAgents = functions.firestore
 
 export const onEditAgents = functions.firestore
     .document('agents/{agentId}')
-    .onCreate((snapshot,context) => {
+    .onUpdate((snapshot,context) => {
         console.log('onEditAgentsTriggered',)
         return tookanFunctions.EditTookanAgents(snapshot,context);
     }); 
@@ -106,7 +106,7 @@ export const onBlockUnblockAgents = functions.firestore
 
 export const onDeleteAgents = functions.firestore
     .document('agents/{agentId}')
-    .onCreate((snapshot,context) => {
+    .onDelete((snapshot,context) => {
         console.log('onDeleteAgentsTriggered',)
         return tookanFunctions.DeleteTookanAgents(snapshot,context);
     });
@@ -176,7 +176,7 @@ export const onAddCustomer = functions.firestore
 
 export const onEditCustomer = functions.firestore
     .document('users/{customerId}')
-    .onCreate((snapshot,context) => {
+    .onUpdate((snapshot,context) => {
         console.log('onEditCustomerTriggered',)
         return tookanFunctions.EditCustomer(snapshot,context);
     });  
@@ -204,7 +204,7 @@ export const onViewCustomerProfile = functions.firestore
 
 export const onDeleteCustomer = functions.firestore
     .document('users/{customerId}')
-    .onCreate((snapshot,context) => {
+    .onDelete((snapshot,context) => {
         console.log('onDeleteCustomerTriggered',)
         return tookanFunctions.DeleteTookanCustomer(snapshot,context);
     }); 
