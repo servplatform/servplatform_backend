@@ -15,7 +15,7 @@ export async function createTookanTask(snapshot, context) {
 
     const options = {
         api_key:'51626687f64b58055e5868641515254314e0c1ff2bd97837551c04',
-        order_id:"344321",
+        order_id:"444321",
         job_description:"groceries delivery",
         customer_email:"oh@example.com",
         customer_username:"John Doe",
@@ -33,7 +33,7 @@ export async function createTookanTask(snapshot, context) {
         layout_type:"0",
         tracking_link:1,
         timezone:"-330",
-        fleet_id:"636",
+        fleet_id:"736",
         ref_images:["http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png","http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png"],
         notify:1,
         tags:"",
