@@ -29,7 +29,7 @@ export const onTaskEdit = functions.firestore
 
 export const onTaskDelete = functions.firestore
     .document('tasks/{taskId}')
-    .onCreate((snapshot,context) => {
+    .onDelete((snapshot,context) => {
         console.log('onTaskDeleteTriggered',)
         return tookanFunctions.deleteTookanTask(snapshot,context);
     }); 
