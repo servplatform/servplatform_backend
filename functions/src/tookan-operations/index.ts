@@ -39,6 +39,7 @@ export async function createTookanTask(snapshot, context) {
         geofence:newValue.geofence,
         //ref_images:["http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png(2 kB) http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png","http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png(2 kB) http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png"],
         
+      
     };
     //Create task in tookan
     return client.createTask(options).then(res => {
@@ -55,7 +56,7 @@ async function updateTaskOnTaskCreate (res,taskId): Promise<string> {
     console.log("Update Task based on response for taskId started",taskId);
     console.log("Updated content for task_id ",taskId,"content: ",res.data());
     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
-    taskRef.set(res.data).then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err));
+    taskRef.set(res.data()).then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err));
 	return taskId
 }
 export async function edittookantask(snapshot, context) {
