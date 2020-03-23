@@ -68,6 +68,7 @@ export async function edittookantask(change, context) {
     console.log('Triggering Edit Tookan task for task id ', taskId, newValue);
 
     const options = {
+        customer_address:newValue.customer_address,
         customer_name: newValue.customer_name,
         deliveryOrderId:newValue.deliveryOrderId,
         job_hash:newValue.job_hash,
