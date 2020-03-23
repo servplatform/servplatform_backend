@@ -5,21 +5,39 @@ import * as admin from 'firebase-admin';
 admin.initializeApp();
 //const db = admin.firestore();
 const algoliasearch = require("algoliasearch");
-
-const client = algoliasearch(functions.config().algolia.appid, functions.config().algolia.apikey);
-const index=client.initIndex('serv_platform');
-exports.indexServ=functions.firestore.document('algolia/{algo_id}').onCreate((snap,context)=>{
-    const data=snap.data();
-    const objectId=snap.id;
-    return index.addObject({
-        objectId,
-        ...data
+    const client = algoliasearch(functions.config().algolia.appid, functions.config().algolia.apikey,{protocol: 'https:'},);
+    const index=client.initIndex('serv_platform'); 
+   
+export const onCreatealgo=functions.firestore
+     .document('algolia/{algoid}')
+     .onCreate((snap,context)=>{
+        const data=snap.data();
+        const objectID=snap.id;
+        console.log('onCreatealgoTriggered',)
+        return index.saveObject(
+            {objectID,
+            ...data
+        });
     });
-});
-exports.unindex=functions.firestore.document('algolia/{algo_id}').onDelete((snap,context)=>{
-const objectId=snap.id;
-return index.deleteObject(objectId);
-});
+ export const onDeletealgo=functions.firestore
+    .document('algolia/{algoid}')
+    .onDelete((snap,context)=>{
+        const objectID=snap.id;
+        console.log('onDeletealgoTriggered',) 
+        return index.deleteObject(objectID);
+        });
+ 
+  export const onUpdatealgo = functions.firestore
+     .document('algolia/{algoid}').onUpdate((change, context) => {
+            const newData = change.after.data();
+            const object = {
+                objectID: context.params.algoid,
+                ...newData
+            }
+    
+            return index.partialUpdateObject(object);
+        })
+
 
 	
 	
