@@ -62,7 +62,7 @@ async function updateTaskOnTaskCreate (res,taskId): Promise<string> {
 export async function edittookantask(change, context) {
     
     const taskId = context.params.taskId;
-    const newValue = change.after.data();
+    const newValue = change.before.data();
     
 
     console.log('Triggering Edit Tookan task for task id ', taskId, newValue);
