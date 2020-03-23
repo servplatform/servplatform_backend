@@ -75,7 +75,7 @@ export async function edittookantask(change, context) {
         job_id:newValue.job_id,
         job_token:newValue.job_token,
         order_id:newValue.order_id,
-        tracking_link:newValue.tracking_link,
+        tracking_link:newValue.tracking_link
 
 
         // customer_username: newValue.customer_username,
