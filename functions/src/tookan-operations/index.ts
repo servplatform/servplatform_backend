@@ -68,23 +68,31 @@ export async function edittookantask(change, context) {
     console.log('Triggering Edit Tookan task for task id ', taskId, newValue);
 
     const options = {
-        customer_email: newValue.customer_email,
-        customer_username: newValue.customer_username,
-        customer_phone: newValue.customer_phone,
-        customer_address: newValue.customer_address,
-        latitude: newValue.latitude,
-        longitude: newValue.longitude,
-        job_description: newValue.job_description,
-        job_pickup_datetime: newValue.job_pickup_datetime,
-        job_delivery_datetime: newValue.job_delivery_datetime,
-        has_pickup: newValue.has_pickup,
-        has_delivery: newValue.has_delivery,
-        layout_type: newValue.layout_type,
-        tracking_link: newValue.tracking_link,
-        timezone: newValue.timezone,
-        api_key: TOOKAN_API_KEY,
-        job_id: newValue.job_id,
-        notify: newValue.notify
+        customer_name: newValue.customer_name,
+        deliveryOrderId:newValue.deliveryOrderId,
+        job_hash:newValue.job_hash,
+        job_id:newValue.job_id,
+        job_token:newValue.job_token,
+        order_id:newValue.order_id,
+        tracking_link:newValue.tracking_link,
+
+
+        // customer_username: newValue.customer_username,
+        // customer_phone: newValue.customer_phone,
+        // customer_address: newValue.customer_address,
+        // latitude: newValue.latitude,
+        // longitude: newValue.longitude,
+        // job_description: newValue.job_description,
+        // job_pickup_datetime: newValue.job_pickup_datetime,
+        // job_delivery_datetime: newValue.job_delivery_datetime,
+        // has_pickup: newValue.has_pickup,
+        // has_delivery: newValue.has_delivery,
+        // layout_type: newValue.layout_type,
+        // tracking_link: newValue.tracking_link,
+        // timezone: newValue.timezone,
+        // api_key: TOOKAN_API_KEY,
+        // job_id: newValue.job_id,
+        // notify: newValue.notify
       };
     //Edit task in tookan
     console.log('Editing tookan task for options: ', options);
