@@ -34,26 +34,26 @@ export const onTaskDelete = functions.firestore
         return tookanFunctions.deleteTookanTask(snapshot,context);
     }); 
 
-export const onTaskStatus = functions.firestore
-    .document('tasks/{taskId}')
-    .onUpdate((snapshot,context) => {
-        console.log('onTaskStatusTriggered',)
-        return tookanFunctions.updateTookanTaskstatus(snapshot,context);
-    }); 
+// export const onTaskStatus = functions.firestore
+//     .document('tasks/{taskId}')
+//     .onUpdate((snapshot,context) => {
+//         console.log('onTaskStatusTriggered',)
+//         return tookanFunctions.updateTookanTaskstatus(snapshot,context);
+//     }); 
 
-export const onStartTask = functions.firestore
-    .document('tasks/{taskId}')
-    .onUpdate((snapshot,context) => {
-        console.log('onStartTaskTriggered',)
-        return tookanFunctions.Starttookantask(snapshot,context);
-    }); 
+// export const onStartTask = functions.firestore
+//     .document('tasks/{taskId}')
+//     .onUpdate((snapshot,context) => {
+//         console.log('onStartTaskTriggered',)
+//         return tookanFunctions.Starttookantask(snapshot,context);
+//     }); 
 
-export const onCancelTask = functions.firestore
-    .document('tasks/{taskId}')
-    .onDelete((snapshot,context) => {
-        console.log('onCancelTaskTriggered',)
-        return tookanFunctions.Canceltookantask(snapshot,context);
-    }); 
+// export const onCancelTask = functions.firestore
+//     .document('tasks/{taskId}')
+//     .onDelete((snapshot,context) => {
+//         console.log('onCancelTaskTriggered',)
+//         return tookanFunctions.Canceltookantask(snapshot,context);
+//     }); 
 
 // export const onAssignTask = functions.firestore
 //     .document('tasks/{taskId}')
