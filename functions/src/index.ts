@@ -5,15 +5,10 @@ admin.initializeApp({
     credential: admin.credential.applicationDefault(),
     databaseURL: 'https://servplatform-d4668.firebaseio.com'
   });
-  const algoliasearch = require("algoliasearch");
-  const client = algoliasearch(functions.config().algolia.appid, functions.config().algolia.apikey,{protocol: 'https:'},);
-  const agentindex=client.initIndex('agents'); 
-  const jobindex=client.initIndex('jobindex');
-  const serviceindex=client.initIndex('services');
- 
 //admin.initializeApp(functions.config().firebase);
 
 import * as tookanFunctions from './tookan-operations/index'
+import * as algoliaFunctions from './algolia/index'
 
 export const firestoreInstance = admin.firestore();
 
@@ -98,13 +93,6 @@ export const onEditAgents = functions.firestore
     .document('agents/{agentId}')
     .onUpdate((snapshot,context) => {
         console.log('onEditAgentsTriggered',)
-        const newData = snapshot.after.data();
-        const object = {
-            objectID: context.params.algoid,
-            ...newData
-        }
-
-        return agentindex.partialUpdateObject(object);
         return tookanFunctions.EditTookanAgents(snapshot,context);
     }); 
     
@@ -221,97 +209,61 @@ export const onDeleteCustomer = functions.firestore
     });
  export const onCreateAgent = functions.firestore
     .document('agents/{agentId}')
-    .onCreate((snap,context) => {
-        const data=snap.data();
-       const objectID=snap.id;
+    .onCreate((snapshot,context) => {
         console.log('onCreateAgentsTriggered',)
-        return agentindex.saveObject(
-            {objectID,
-            ...data
-            });
-        
-    });  
-
-
+        return algoliaFunctions.createAlgoliaAgent(snapshot,context)
+         });  
  export const onUpdateAgent = functions.firestore
     .document('agents/{agentId}').onUpdate((change, context) => {
-           const newData = change.after.data();
-           const object = {
-               objectID: context.params.algoid,
-               ...newData
-           }
-   
-           return agentindex.partialUpdateObject(object);
+       console.log('onUpdateAgentsTriggered',)
+      return algoliaFunctions.updateAlgoliaAgent(change,context)
        }) 
   export const onDeleteAgent=functions.firestore
        .document('agents/{agentId}')
-       .onDelete((snap,context)=>{
-        const objectID=snap.id;
-        console.log('onDeletealgoTriggered',) 
-        return agentindex.deleteObject(objectID);
+       .onDelete((snapshot,context)=>{
+        console.log('onDeleteAgentTriggered',) 
+        return algoliaFunctions.deleteAlgoliaAgent(snapshot,context)
+        
            
            });
  
-  
-   
-    export const onCreateService=functions.firestore
+  export const onCreateService=functions.firestore
         .document('services/{serviceId}')
-        .onCreate((snap,context)=>{
-           const data=snap.data();
-           const objectID=snap.id;
-           console.log('onCreatealgoTriggered',)
-           return serviceindex.saveObject(
-               {objectID,
-               ...data
-           });
-       });
+        .onCreate((snapshot,context)=>{
+           console.log('onCreateServiceTriggered',)
+           return algoliaFunctions.createAlgoliaService(snapshot,context)
+            });
     export const onDeleteService=functions.firestore
        .document('services/{serviceId}')
-       .onDelete((snap,context)=>{
-           const objectID=snap.id;
-           console.log('onDeletealgoTriggered',) 
-           return serviceindex.deleteObject(objectID);
+       .onDelete((snapshot,context)=>{
+        console.log('onDeleteServiceTriggered',) 
+        return algoliaFunctions.deleteAlgoliaService(snapshot,context)
            });
     
      export const onUpdateService = functions.firestore
         .document('services/{serviceId}').onUpdate((change, context) => {
-               const newData = change.after.data();
-               const object = {
-                   objectID: context.params.algoid,
-                   ...newData
-               }
-       
-               return serviceindex.partialUpdateObject(object);
+            console.log('onUpdateServiceTriggered',)
+            return algoliaFunctions.updateAlgoliaService(change,context)
+               
            })
            
-           export const onCreateJob=functions.firestore
+        export const onCreateJob=functions.firestore
            .document('jobs/{jobId}')
-           .onCreate((snap,context)=>{
-              const data=snap.data();
-              const objectID=snap.id;
-              console.log('onCreatealgoTriggered',)
-              return jobindex.saveObject(
-                  {objectID,
-                  ...data
-              });
-          });
+           .onCreate((snapshot,context)=>{
+            console.log('onCreateJobTriggered',)
+            return algoliaFunctions.createAlgoliaJob(snapshot,context)
+            });
        export const onDeleteJob=functions.firestore
           .document('jobs/{jobId}')
-          .onDelete((snap,context)=>{
-              const objectID=snap.id;
-              console.log('onDeletealgoTriggered',) 
-              return jobindex.deleteObject(objectID);
+          .onDelete((snapshot,context)=>{
+              console.log('onDeleteJobTriggered',) 
+              return algoliaFunctions.deleteAlgoliaJob(snapshot,context)
               });
        
         export const onUpdateJob = functions.firestore
            .document('jobs/{jobId}').onUpdate((change, context) => {
-                  const newData = change.after.data();
-                  const object = {
-                      objectID: context.params.algoid,
-                      ...newData
-                  }
-          
-                  return jobindex.partialUpdateObject(object);
+            console.log('onUpdateJobTriggered',)
+            return algoliaFunctions.updateAlgoliaJob(change,context)
               })
        
        
