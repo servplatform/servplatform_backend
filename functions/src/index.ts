@@ -9,6 +9,7 @@ admin.initializeApp({
 
 import * as tookanFunctions from './tookan-operations/index'
 import * as algoliaFunctions from './algolia/index'
+import * as recombeeFunctions from './recombee/index'
 //import { TASKS } from './constants';
 
 export const firestoreInstance = admin.firestore();
@@ -266,48 +267,35 @@ export const onDeleteCustomer = functions.firestore
             console.log('onUpdateJobTriggered',)
             return algoliaFunctions.updateAlgoliaJob(change,context)
               })
-              const recombee = require('recombee-api-client');
-              const client = new recombee.ApiClient('serv-platform-dev', 'gcC0wKVjFGMopvW9T6ZSHJZbDR63qJX8UoImvdyo99UVrR3P0DnflQ55oM1kT4IJ');
-              //Interactions take Id of user and Id of item
              
-              
         export const onCreateItemRecombee=functions.firestore
         .document('recombee/{recombeeId}')
         .onCreate((snapshot,context)=>{
-            const rqs = recombee.requests;
-            
-            
-            const objectID=snapshot.id;
-
-             return client.send(new rqs.AddItem(objectID)).catch((error) => {
-                console.log('Error sending message:', error);
-                return false;
-        
-             })
+            console.log('onCreateRecombeeItemTriggered')
+            return recombeeFunctions.createRecombeeItem(snapshot,context)
          });
          export const onCreatePropertyRecombee=functions.firestore
         .document('recombee/{recombeeId}')
         .onCreate((snapshot,context)=>{
-         const recombe = require('recombee-api-client');
-         const rqs = recombe.requests;
-         //const data=snapshot.data();
-        return client.send(new rqs.AddItemProperty('order_id','string')).catch((error) => {
-            console.log('Error sending message:', error);
-            return false;
-    
-         })
+            console.log('onCreateRecombePropertyeTriggered')
+            return recombeeFunctions.createRecombeeProperty(snapshot,context)
+         
         });
         export const onCreateDataRecombee=functions.firestore
         .document('recombee/{recombeeId}')
         .onCreate((snapshot,context)=>{
-        const recomb = require('recombee-api-client');
-        const rqs = recomb.requests;
-        const objectID=snapshot.id;
-        const data=snapshot.data();
-        return client.send(new rqs.SetItemValues(objectID, data)).catch((error) => {
-            console.log('Error sending message:', error);
-            return false;
-    
-         })
-         
-        });
+            console.log('onCreateRecombeeDataTriggered')
+            return recombeeFunctions.createRecombeeData(snapshot,context)
+         });
+         export const onDeleteItemRecombee=functions.firestore
+         .document('recombee/{recombeeId}')
+         .onDelete((snapshot,context)=>{
+             console.log('onDeleteRecombeeItemTriggered')
+             return recombeeFunctions.deleteRecombeeItem(snapshot,context)
+          });
+          export const onDeletePropertyRecombee=functions.firestore
+         .document('recombee/{recombeeId}')
+         .onUpdate((snapshot,context)=>{
+             console.log('onDeleteRecombeePropertyTriggered')
+             return recombeeFunctions.deleteRecombeeProperty(snapshot,context)
+          });

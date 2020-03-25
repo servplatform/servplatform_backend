@@ -1,7 +1,55 @@
+//import * as functions from 'firebase-functions';
 const recombee = require('recombee-api-client');
-
-// Initialize client with name of your database and PUBLIC token
-const client = new recombee.ApiClient('serv-platform-dev', 'dsOybgdgyyn1RNQ8vV4ntbUn1KyQpGl5oBr0D25TqI8K6KI73Mv1bXu3e98IZrpu');
-//Interactions take Id of user and Id of item
-client.send(new recombee.AddBookmark('user-13434', 'item-256'));
-
+const client = new recombee.ApiClient('serv-platform-dev', 'gcC0wKVjFGMopvW9T6ZSHJZbDR63qJX8UoImvdyo99UVrR3P0DnflQ55oM1kT4IJ');
+export async function createRecombeeItem(snapshot, context) {
+    const rqs = recombee.requests;
+            const objectID=snapshot.id;
+            return client.send(new rqs.AddItem(objectID)).catch((error) => {
+                console.log('Error sending message:', error);
+                return false;
+        
+             })
+    
+}
+export async function createRecombeeProperty(snapshot, context) {
+   // const recombe = require('recombee-api-client');
+         const rqs = recombee.requests;
+         //const data=snapshot.data();
+        return client.send(new rqs.AddItemProperty('order_id','string')).catch((error) => {
+            console.log('Error sending message:', error);
+            return false;
+    
+         })
+    
+}
+export async function createRecombeeData(snapshot, context) {
+   // const recomb = require('recombee-api-client');
+        const rqs = recombee.requests;
+        const objectID=snapshot.id;
+        const data=snapshot.data();
+        return client.send(new rqs.SetItemValues(objectID, data)).catch((error) => {
+            console.log('Error sending message:', error);
+            return false;
+    
+         })
+        
+             }
+     export async function deleteRecombeeItem(snapshot, context) {
+             const rqs = recombee.requests;
+             const objectID=snapshot.id;
+             return client.send(new rqs.DeleteItem(objectID)).catch((error) => {
+                console.log('Error sending message:', error);
+                return false;
+                 
+                      })
+                 }
+     export async function deleteRecombeeProperty(snapshot, context) {
+                    const rqs = recombee.requests;
+                    //const objectID=snapshot.id;
+                    return client.send(new rqs.DeleteItemProperty('order_id')).catch((error) => {
+                       console.log('Error sending message:', error);
+                       return false;
+                        
+                             })
+                        }
+      
