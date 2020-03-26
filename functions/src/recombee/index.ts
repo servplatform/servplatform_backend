@@ -80,11 +80,11 @@ export async function createRecombeeData(snapshot, context) {
            const rqs = recombee.requests;
             const objectID=snapshot.id;
             const data=snapshot.data();
-            return client.send(new rqs.SetUserValues(objectID, data)).catch((error) => {
+            setTimeout(() => { return client.send(new rqs.SetUserValues(objectID, data)).catch((error) => {
              console.log('Error sending message:', error);
              return false;
                 })
-                }
+                },300)}
     export async function deleteRecombeeUser(snapshot, context) {
              const rqs = recombee.requests;
              const objectID=snapshot.id;
@@ -97,10 +97,11 @@ export async function createRecombeeData(snapshot, context) {
     export async function deleteRecombeeUserProperty(snapshot, context) {
              const rqs = recombee.requests;
              //const data=snapshot.data();
-             return client.send(new rqs.DeleteUserProperty('full_name')).catch((error) => {
+              return client.send(new rqs.DeleteUserProperty('full_name')).catch((error) => {
              console.log('Error sending message:', error);
             return false;
                })
+            
           }  
    
     export async function AddDetailview(snapshot, context) {
