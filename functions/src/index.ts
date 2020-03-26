@@ -269,33 +269,136 @@ export const onDeleteCustomer = functions.firestore
               })
              
         export const onCreateItemRecombee=functions.firestore
-        .document('recombee/{recombeeId}')
+        .document('services/{serviceId}')
         .onCreate((snapshot,context)=>{
             console.log('onCreateRecombeeItemTriggered')
             return recombeeFunctions.createRecombeeItem(snapshot,context)
          });
          export const onCreatePropertyRecombee=functions.firestore
-        .document('recombee/{recombeeId}')
+        .document('services/{serviceId}')
         .onCreate((snapshot,context)=>{
             console.log('onCreateRecombePropertyeTriggered')
             return recombeeFunctions.createRecombeeProperty(snapshot,context)
          
         });
         export const onCreateDataRecombee=functions.firestore
-        .document('recombee/{recombeeId}')
+        .document('services/{serviceId}')
         .onCreate((snapshot,context)=>{
             console.log('onCreateRecombeeDataTriggered')
             return recombeeFunctions.createRecombeeData(snapshot,context)
          });
          export const onDeleteItemRecombee=functions.firestore
-         .document('recombee/{recombeeId}')
+         .document('services/{serviceId}')
          .onDelete((snapshot,context)=>{
              console.log('onDeleteRecombeeItemTriggered')
              return recombeeFunctions.deleteRecombeeItem(snapshot,context)
           });
           export const onDeletePropertyRecombee=functions.firestore
-         .document('recombee/{recombeeId}')
+         .document('services/{serviceId}')
          .onUpdate((snapshot,context)=>{
              console.log('onDeleteRecombeePropertyTriggered')
              return recombeeFunctions.deleteRecombeeProperty(snapshot,context)
           });
+          export const onCreateUserRecombee=functions.firestore
+         .document('users/{userId}')
+         .onCreate((snapshot,context)=>{
+             console.log('onDeleteRecombeePropertyTriggered')
+             return recombeeFunctions.createRecombeeUser(snapshot,context)
+          });
+          export const onCreateUserPropertyRecombee=functions.firestore
+         .document('users/{userId}')
+         .onCreate((snapshot,context)=>{
+             console.log('onDeleteRecombeePropertyTriggered')
+             return recombeeFunctions.createRecombeeUserProperty(snapshot,context)
+          });
+          export const onCreateUserDataRecombee=functions.firestore
+         .document('users/{userId}')
+         .onCreate((snapshot,context)=>{
+             console.log('onDeleteRecombeePropertyTriggered')
+             return recombeeFunctions.createRecombeeUserData(snapshot,context)
+          });
+          export const onDeleteUserRecombee=functions.firestore
+          .document('users/{userId}')
+          .onDelete((snapshot,context)=>{
+              console.log('onDeleteRecombeeUserTriggered')
+              return recombeeFunctions.deleteRecombeeUser(snapshot,context)
+           });
+          export const onDeleteUserPropertyRecombee=functions.firestore
+         .document('users/{userId}')
+         .onUpdate((snapshot,context)=>{
+             console.log('onDeleteRecombeePropertyTriggered')
+             return recombeeFunctions.deleteRecombeeUserProperty(snapshot,context)
+          });
+          export const onCreateDetailRecombee=functions.firestore
+          .document('services/{serviceId}')
+          .onCreate((snapshot,context)=>{
+              console.log('onCreateDetailRecombee triggered')
+              return recombeeFunctions.AddDetailview(snapshot,context)
+           });
+          export const onCreatePurchaseRecombee=functions.firestore
+          .document('services/{serviceId}')
+          .onCreate((snapshot,context)=>{
+              console.log('onCreatePurchaseRecombee triggered')
+              return recombeeFunctions.AddPurchaseview(snapshot,context)
+           });
+           export const onCreateRatingRecombee=functions.firestore
+           .document('services/{serviceId}')
+           .onCreate((snapshot,context)=>{
+               console.log('onCreateRatingRecombeetriggered')
+               return recombeeFunctions.AddRatingview(snapshot,context)
+            });
+            export const onCreateCartRecombee=functions.firestore
+            .document('services/{serviceId}')
+            .onCreate((snapshot,context)=>{
+                console.log('onCreateCartRecombee triggered')
+                return recombeeFunctions.AddCartview(snapshot,context)
+             });
+            export const onCreateBookmarksRecombee=functions.firestore
+             .document('services/{serviceId}')
+             .onCreate((snapshot,context)=>{
+                 console.log('onCreateBookmarksRecombee triggered')
+                 return recombeeFunctions.AddBookmarks(snapshot,context)
+              });
+            export const onCreateViewPortionRecombee=functions.firestore
+              .document('services/{serviceId}')
+              .onCreate((snapshot,context)=>{
+                  console.log('onCreateViewPortionRecombee triggered')
+                  return recombeeFunctions.AddViewPortions(snapshot,context)
+               });
+            export const onDeleteDetailRecombee=functions.firestore
+            .document('services/{serviceId}')
+            .onCreate((snapshot,context)=>{
+              console.log('onDeleteeDetailRecombee triggered')
+              return recombeeFunctions.DeleteDetailview(snapshot,context)
+             });
+            export const onDeletePurchaseRecombee=functions.firestore
+              .document('services/{serviceId}')
+              .onCreate((snapshot,context)=>{
+              console.log('onDeletePurchaseRecombee triggered')
+              return recombeeFunctions.DeletePurchaseview(snapshot,context)
+             });
+            export const onDeleteRatingRecombee=functions.firestore
+             .document('services/{serviceId}')
+             .onCreate((snapshot,context)=>{
+               console.log('onDeleteRatingRecombeetriggered')
+               return recombeeFunctions.DeleteRatingview(snapshot,context)
+              });
+            export const onDeleteCartRecombee=functions.firestore
+            .document('services/{serviceId}')
+            .onCreate((snapshot,context)=>{
+                console.log('onDeleteCartRecombee triggered')
+                return recombeeFunctions.DeleteCartview(snapshot,context)
+             });
+            export const onDeleteBookmarksRecombee=functions.firestore
+             .document('services/{serviceId}')
+             .onCreate((snapshot,context)=>{
+                 console.log('onDeleteBookmarksRecombee triggered')
+                 return recombeeFunctions.DeleteBookmarks(snapshot,context)
+              });
+            export const onDeleteViewPortionRecombee=functions.firestore
+              .document('services/{serviceId}')
+              .onCreate((snapshot,context)=>{
+                  console.log('onDeleteViewPortionRecombee triggered')
+                  return recombeeFunctions.DeleteViewPortions(snapshot,context)
+               });
+        
