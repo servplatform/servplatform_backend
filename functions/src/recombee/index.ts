@@ -80,11 +80,11 @@ export async function createRecombeeData(snapshot, context) {
            const rqs = recombee.requests;
             const objectID=snapshot.id;
             const data=snapshot.data();
-            setTimeout(() => { return client.send(new rqs.SetUserValues(objectID, data)).catch((error) => {
+            return client.send(new rqs.SetUserValues(objectID, data)).catch((error) => {
              console.log('Error sending message:', error);
              return false;
                 })
-                },300)}
+                }
     export async function deleteRecombeeUser(snapshot, context) {
              const rqs = recombee.requests;
              const objectID=snapshot.id;
