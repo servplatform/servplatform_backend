@@ -274,19 +274,6 @@ export const onDeleteCustomer = functions.firestore
             console.log('onCreateRecombeeItemTriggered')
             return recombeeFunctions.createRecombeeItem(snapshot,context)
          });
-         export const onCreatePropertyRecombee=functions.firestore
-        .document('services/{serviceId}')
-        .onCreate((snapshot,context)=>{
-            console.log('onCreateRecombePropertyeTriggered')
-            return recombeeFunctions.createRecombeeProperty(snapshot,context)
-         
-        });
-        export const onCreateDataRecombee=functions.firestore
-        .document('services/{serviceId}')
-        .onCreate((snapshot,context)=>{
-            console.log('onCreateRecombeeDataTriggered')
-            return recombeeFunctions.createRecombeeData(snapshot,context)
-         });
          export const onDeleteItemRecombee=functions.firestore
          .document('services/{serviceId}')
          .onDelete((snapshot,context)=>{
@@ -304,18 +291,6 @@ export const onDeleteCustomer = functions.firestore
          .onCreate((snapshot,context)=>{
              console.log('onDeleteRecombeePropertyTriggered')
              return recombeeFunctions.createRecombeeUser(snapshot,context)
-          });
-          export const onCreateUserPropertyRecombee=functions.firestore
-         .document('users/{userId}')
-         .onCreate((snapshot,context)=>{
-             console.log('onDeleteRecombeePropertyTriggered')
-             return recombeeFunctions.createRecombeeUserProperty(snapshot,context)
-          });
-          export const onCreateUserDataRecombee=functions.firestore
-         .document('users/{userId}')
-         .onCreate((snapshot,context)=>{
-             console.log('onDeleteRecombeePropertyTriggered')
-             return recombeeFunctions.createRecombeeUserData(snapshot,context)
           });
           export const onDeleteUserRecombee=functions.firestore
           .document('users/{userId}')

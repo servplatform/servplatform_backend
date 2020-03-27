@@ -1,4 +1,3 @@
-
 //import * as functions from 'firebase-functions';
 
 const recombee = require('recombee-api-client');
@@ -7,17 +6,24 @@ export async function createRecombeeItem(snapshot, context) {
     const rqs = recombee.requests;
             const objectID=snapshot.id;
             //item=snapshot.id;
-            return client.send(new rqs.AddItem(objectID)).catch((error) => {
+            return client.send(new rqs.AddItem(objectID)).then(res => {
+               console.log('Creating Recombee Property');
+               return createRecombeeProperty(snapshot,context);   
+           }).then(res => {
+            console.log('Creating Recombee Data');
+            return createRecombeeData(snapshot,context);   
+        }).catch((error) => {
                 console.log('Error sending message:', error);
                 return false;
         
              })
     
 }
-export async function createRecombeeProperty(snapshot, context) {
+async function createRecombeeProperty(snapshot, context) {
    // const recombe = require('recombee-api-client');
          const rqs = recombee.requests;
-         //const data=snapshot.data();
+         //const newValue=snapshot.data();
+         
         return client.send(new rqs.AddItemProperty('order_id','string')).catch((error) => {
             console.log('Error sending message:', error);
             return false;
@@ -25,7 +31,7 @@ export async function createRecombeeProperty(snapshot, context) {
          })
     
 }
-export async function createRecombeeData(snapshot, context) {
+async function createRecombeeData(snapshot, context) {
    // const recomb = require('recombee-api-client');
         const rqs = recombee.requests;
         const objectID=snapshot.id;
@@ -58,14 +64,21 @@ export async function createRecombeeData(snapshot, context) {
       export async function createRecombeeUser(snapshot, context) {
                   const rqs = recombee.requests;
                   const objectID=snapshot.id;
-                 // objectuser=snapshot.id
-                  return client.send(new rqs.AddUser(objectID)).catch((error) => {
+                  //const data=Object.keys(snapshot.data())[0];
+                  return client.send(new rqs.AddUser(objectID)).then(res => {
+                     console.log('Creating Recombee User Property');
+                     return createRecombeeUserProperty(snapshot,context);   
+                 }).then(res => {
+                  console.log('Creating Recombee User Data');
+                  return createRecombeeUserData(snapshot,context);   
+              }).catch((error) => {
                      console.log('Error sending message:', error);
                      return false;
                                 
                             })
                            }
-      export async function createRecombeeUserProperty(snapshot, context) {
+                           
+      async function createRecombeeUserProperty(snapshot, context) {
                   const rqs = recombee.requests;
                  // const objectID=snapshot.id;
                  //const data=snapshot.data();
@@ -76,7 +89,7 @@ export async function createRecombeeData(snapshot, context) {
                          })
                            }
       
-    export async function createRecombeeUserData(snapshot, context) {
+    async function createRecombeeUserData(snapshot, context) {
            const rqs = recombee.requests;
             const objectID=snapshot.id;
             const data=snapshot.data();
