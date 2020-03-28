@@ -63,7 +63,7 @@ export async function edittookantask(change, context) {
     
     const taskId = context.params.taskId;
 
-    const oldValue = change.before.data();
+    //const oldValue = change.before.data();
     const newValue = change.after.data();
 
     
