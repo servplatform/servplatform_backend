@@ -12,21 +12,28 @@ admin.initializeApp({
 import * as tookanFunctions from './tookan-operations/index'
 
 export const firestoreInstance = admin.firestore();
-
+var num:number=1;
 export const onTaskCreate = functions.firestore
     .document('tasks/{taskId}')
     .onCreate((snapshot,context) => {
         console.log('onTaskCreateTriggered')
         return tookanFunctions.createTookanTask(snapshot,context);
+   
     });
- 
 export const onTaskEdit = functions.firestore
     .document('tasks/{taskId}')
+    // .document('tasks/{taskId}/data/{dataId}')
+
     .onUpdate((change,context) => {
         console.log('onTaskEditTriggered',)
+        if(change.before.data()==change.after.data()){
+            console.log("Text didnot changed")
+            return null
+        }
+        else
         return tookanFunctions.edittookantask(change,context);
     });    
-
+    
 export const onTaskDelete = functions.firestore
     .document('tasks/{taskId}')
     .onDelete((snapshot,context) => {

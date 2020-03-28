@@ -4,6 +4,7 @@ export let PRIV_USER_DATA = 'PrivateUserData';
 export let PUBLIC_USER_DATA = 'PublicUserData';
 export let ORDERS = 'orders';
 export let TASKS = 'tasks';
+export let TASKS_STATUS = 'tasks_status'
 export let FOLLOWERS = 'Followers';
 export let FEED = 'Feed';
 export let EVENTS = 'Events';

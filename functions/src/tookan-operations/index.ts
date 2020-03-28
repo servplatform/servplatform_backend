@@ -1,5 +1,5 @@
 import {
-    TOOKAN_API_KEY,TASKS, AGENTS, USERS, PROVIDERS
+    TOOKAN_API_KEY,TASKS, AGENTS, USERS, PROVIDERS, TASKS_STATUS
 } from "../constants";
 import {firestoreInstance} from "../index";
 import * as Tookan from "tookan-api";
@@ -12,7 +12,7 @@ export async function createTookanTask(snapshot, context) {
     
 
     console.log('Triggering Create Tookan task for task id ', taskId, newValue);
-
+    
     const options = {
         api_key:TOOKAN_API_KEY,
         order_id:newValue.order_id,
@@ -54,7 +54,7 @@ async function updateTaskOnTaskCreate (res,taskId): Promise<string> {
     console.log("Tookan task created with response successfully for taskId: ",taskId,"Response received from tookan: ",res.data);
     console.log("Update Task based on response for taskId started",taskId);
     console.log("Updated content for task_id ",taskId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
+    const taskRef = firestoreInstance.collection(TASKS_STATUS).doc(taskId);
     taskRef.set(res.data).then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err));
 	return taskId
 }
@@ -62,11 +62,17 @@ async function updateTaskOnTaskCreate (res,taskId): Promise<string> {
 export async function edittookantask(change, context) {
     
     const taskId = context.params.taskId;
-    const newValue = change.before.data();
+
+    const oldValue = change.before.data();
+    const newValue = change.after.data();
+
+    
+
+
     
 
     console.log('Triggering Edit Tookan task for task id ', taskId, newValue);
-
+    
     const options = {
         // customer_address:newValue.customer_address,
         // customer_name: newValue.customer_name,
@@ -76,7 +82,7 @@ export async function edittookantask(change, context) {
         // job_token:newValue.job_token,
         // order_id:newValue.order_id,
         // tracking_link:newValue.tracking_link
-
+    "updateMask":{
         customer_email:newValue.customer_email,
         customer_username: newValue.customer_username,
         customer_phone: newValue.customer_phone,
@@ -94,7 +100,7 @@ export async function edittookantask(change, context) {
         api_key: TOOKAN_API_KEY,
         job_id: newValue.job_id,
         notify: newValue.notify
-      };
+      }};
     //Edit task in tookan
     console.log('Editing tookan task for options: ', options);
     return client.editTask(options).then(res => {
