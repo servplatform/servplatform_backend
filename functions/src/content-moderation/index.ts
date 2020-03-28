@@ -107,7 +107,7 @@ async function updateMsgResult (res,msgId,msg,activity): Promise<string> {
     
 
     
-    if (activity=="message"){
+    if (activity==="message"){
 
         const resultData = {
             "result of message" :{
@@ -122,7 +122,7 @@ async function updateMsgResult (res,msgId,msg,activity): Promise<string> {
         const msgRef = firestoreInstance.collection("messages").doc(msgId);
         msgRef.update(resultData).then(() => console.log("msgId:", msgId)).catch(err => console.log(" failed : " + err));
     }
-    else if (activity=="serviceName"){
+    else if (activity==="serviceName"){
 
         const resultData = {
             'result of service name' :{
@@ -138,7 +138,7 @@ async function updateMsgResult (res,msgId,msg,activity): Promise<string> {
         const msgRef = firestoreInstance.collection("services").doc(msgId);
         msgRef.update(resultData).then(() => console.log("msgId:", msgId)).catch(err => console.log(" failed : " + err));
     }
-    else if (activity=="serviceDescription"){
+    else if (activity==="serviceDescription"){
 
         const resultData = {
             'result of service Description' :{
