@@ -14,7 +14,7 @@ import * as tookanFunctions from './tookan-operations/index'
 export const firestoreInstance = admin.firestore();
 
 export const onTaskCreate = functions.firestore
-    .document('tasks_status/{task_statusId}')
+    .document('tasks_status/{taskId}')
     .onCreate((snapshot,context) => {
         console.log('onTaskCreateTriggered')
         return tookanFunctions.createTookanTask(snapshot,context);
