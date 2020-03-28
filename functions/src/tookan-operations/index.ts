@@ -82,7 +82,7 @@ export async function edittookantask(change, context) {
         // job_token:newValue.job_token,
         // order_id:newValue.order_id,
         // tracking_link:newValue.tracking_link
-    "updateMask":{
+    
         customer_email:newValue.customer_email,
         customer_username: newValue.customer_username,
         customer_phone: newValue.customer_phone,
@@ -100,7 +100,7 @@ export async function edittookantask(change, context) {
         api_key: TOOKAN_API_KEY,
         job_id: newValue.job_id,
         notify: newValue.notify
-      }};
+      };
     //Edit task in tookan
     console.log('Editing tookan task for options: ', options);
     return client.editTask(options).then(res => {
