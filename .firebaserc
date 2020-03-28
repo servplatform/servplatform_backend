@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "staging": "servplatform-d4668",
+    "default": "servplatform-d4668"
+  }
+}

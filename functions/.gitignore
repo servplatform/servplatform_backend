@@ -1,0 +1,11 @@
+## Compiled JavaScript files
+**/*.js
+**/*.js.map
+
+# Typescript v1 declaration files
+typings/
+
+node_modules/
+
+# GCP Key
+servplatform-d4668-firebase-adminsdk-rqyid-c976dca51e.json
