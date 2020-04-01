@@ -2,9 +2,11 @@ import * as CM from "azure-cognitiveservices-contentmoderator";
 import * as azureMsRest from "ms-rest-azure";
 import {firestoreInstance} from "../index";
 
-const contentModeratorKey = process.env["54e4c6f1784347e78fe58f4be81e9626"] || "54e4c6f1784347e78fe58f4be81e9626";
+const contentModeratorKey = process.env["919a1c36b6a24e4585f53b4c0bd64752"] || "919a1c36b6a24e4585f53b4c0bd64752";
 const contentModeratorEndPoint =
-    process.env["https://tushantcontentmoderation.cognitiveservices.azure.com/"] || "https://tushantcontentmoderation.cognitiveservices.azure.com/";
+    process.env["https://tushant.cognitiveservices.azure.com/"] || "https://tushant.cognitiveservices.azure.com/";
+
+
 
 const cognitiveServiceCredentials = new azureMsRest.CognitiveServicesCredentials(contentModeratorKey);
 const client = new CM.ContentModeratorClient(cognitiveServiceCredentials, contentModeratorEndPoint);
@@ -28,7 +30,7 @@ export async function createMsgJob(snapshot,context,activity) {
    // var key = Object.keys(snapshot.data())[0];
   //   console.log(key);
 
-    console.log('Triggering getMsgResult for message id ', msgId, msgValue);
+    console.log('Triggering createMsgJob for message id ', msgId, msgValue);
     let msg
 
     if (activity==='message'){
@@ -63,12 +65,12 @@ export async function createMsgJob(snapshot,context,activity) {
 
     const opts = {
         customHeaders : {
-            'Ocp-Apim-Subscription-Key' : '7482fd48c8654bbc93685f7f04015185',
+            'Ocp-Apim-Subscription-Key' : '919a1c36b6a24e4585f53b4c0bd64752',
         }
     }
 
     
-    client.reviews.createJob('team1037','Text','9293884','default','application/json',content,opts).then(jId =>{
+    client.reviews.createJob('tushantteam','Text','929334345884','textworkflow','application/json',content,opts).then(jId =>{
         console.log("jId: ",jId);
         const jobId = jId.jobId;
         
@@ -119,8 +121,8 @@ async function updateMsgResult (res,msgId,msg,activity): Promise<string> {
             "Review Recommond" : rev,
             }
         }
-        const msgRef = firestoreInstance.collection("messages").doc(msgId);
-        msgRef.update(resultData).then(() => console.log("msgId:", msgId)).catch(err => console.log(" failed : " + err));
+        const msgRef = firestoreInstance.collection("messages_result").doc(msgId);
+        msgRef.set(resultData).then(() => console.log("msgId:", msgId)).catch(err => console.log(" failed : " + err));
     }
     else if (activity==="serviceName"){
 
@@ -135,8 +137,8 @@ async function updateMsgResult (res,msgId,msg,activity): Promise<string> {
             }
         }
 
-        const msgRef = firestoreInstance.collection("services").doc(msgId);
-        msgRef.update(resultData).then(() => console.log("msgId:", msgId)).catch(err => console.log(" failed : " + err));
+        const msgRef = firestoreInstance.collection("services_name_cm_result").doc(msgId);
+        msgRef.set(resultData).then(() => console.log("msgId:", msgId)).catch(err => console.log(" failed : " + err));
     }
     else if (activity==="serviceDescription"){
 
@@ -151,8 +153,8 @@ async function updateMsgResult (res,msgId,msg,activity): Promise<string> {
             }
         }
 
-        const msgRef = firestoreInstance.collection("services").doc(msgId);
-        msgRef.update(resultData).then(() => console.log("msgId:", msgId)).catch(err => console.log(" failed : " + err));
+        const msgRef = firestoreInstance.collection("services_description_cm_result").doc(msgId);
+        msgRef.set(resultData).then(() => console.log("msgId:", msgId)).catch(err => console.log(" failed : " + err));
     }
 
 
@@ -162,16 +164,16 @@ async function updateMsgResult (res,msgId,msg,activity): Promise<string> {
 async function updateJobId (jobId,msgId,activity): Promise<string> {
     
     if (activity==="message"){
-        const jobRef = firestoreInstance.collection('messages').doc(msgId);
-        jobRef.update({'JobId of message':jobId}).then(() => console.log("JobId :",jobId)).catch(err => console.log("failed : "+err));
+        const jobRef = firestoreInstance.collection('messages_cm_job_id').doc(msgId);
+        jobRef.set({'JobId_of_message':jobId}).then(() => console.log("JobId :",jobId)).catch(err => console.log("failed : "+err));
     }
     else if (activity==="serviceName"){
-        const jobRef = firestoreInstance.collection('services').doc(msgId);
-        jobRef.update({'JobId of serviceName':jobId}).then(() => console.log("JobId :",jobId)).catch(err => console.log("failed : "+err));
+        const jobRef = firestoreInstance.collection('services_name_cm_job_id').doc(msgId);
+        jobRef.set({'JobId_of_serviceName':jobId}).then(() => console.log("JobId :",jobId)).catch(err => console.log("failed : "+err));
     }
     else if (activity==="serviceDescription"){
-        const jobRef = firestoreInstance.collection('services').doc(msgId);
-        jobRef.update({'JobId of serviceDescription':jobId}).then(() => console.log("JobId :",jobId)).catch(err => console.log("failed : "+err));
+        const jobRef = firestoreInstance.collection('services_description_cm_job_id').doc(msgId);
+        jobRef.set({'JobId_of_serviceDescription':jobId}).then(() => console.log("JobId :",jobId)).catch(err => console.log("failed : "+err));
     }
 
 
@@ -182,6 +184,44 @@ async function updateJobId (jobId,msgId,activity): Promise<string> {
     .catch(err => console.log("job details failed : ",+err));
 
     return jobId
+}
+
+
+export async function createMsgReview(snapshot,context) {
+
+    const msgId = context.params.msgId;
+    const msgValue = snapshot.data();
+
+    const jid = msgValue.JobId_of_message;
+    console.log("jid: ",jid);
+    return client.reviews.getJobDetails('tushantteam',jid).then(res =>{
+        console.log("job details : ",res);
+        const revId = res.reviewId;
+        console.log("review Id:",revId);
+        const ref = firestoreInstance.collection('messages_cm_rev_id').doc(msgId)
+        ref.set({'review_id':revId}).then(()=>console.log("review id updated")).catch(err=>console.log(err));
+        
+    })
+    .catch(err => console.log("job details error :"+err));
+}
+
+
+export async function getMessageReview(snapshot,context) {
+    const msgId = context.params.msgId;
+    const msgValue = snapshot.data();
+    console.log("msgValue and msgId",msgValue,msgId);
+
+
+    const rid = msgValue.review_id;
+    return client.reviews.getReview('tushantteam',rid).then(res =>{
+        console.log("review result :",res)
+        const tags = res.reviewerResultTags;
+        console.log(tags);
+        
+       
+    })
+    .catch(err => console.log("review get error:",err));
+
 }
 
 

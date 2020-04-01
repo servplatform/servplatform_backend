@@ -10,7 +10,8 @@ admin.initializeApp({
 //admin.initializeApp(functions.config().firebase);
 
 import * as tookanFunctions from './tookan-operations/index'
-import * as CmFunctions from './content-moderation'
+import * as CmFunctions from './text-moderation'
+import * as ImageFunctions from './image-moderation'
 
 export const firestoreInstance = admin.firestore();
 
@@ -229,4 +230,25 @@ export const onCreateServiceDescription = functions.firestore
     .onCreate((snapshot,context) => {
         console.log("onCreateMessageTriggered",)
         return CmFunctions.createMsgJob(snapshot,context,'serviceDescription');
+    });
+
+export const onImgAdd = functions.firestore
+    .document('image/{imgId}')
+    .onCreate((snapshot,context) =>{
+        console.log("onImgAdd",)
+        return ImageFunctions.createImgJob(snapshot,context);
+    });
+
+export const onCreateMsgTextModeratorId = functions.firestore
+    .document('messages_cm_job_id/{msgId}')
+    .onCreate((snapshot,context) => {
+        console.log("onCreateMsgTextModerator",)
+        return CmFunctions.createMsgReview(snapshot,context);
+    });
+
+export const onMsgCmReviewId = functions.firestore
+    .document('messages_cm_rev_id/{msgId}')
+    .onCreate((snapshot,context) => {
+        console.log("onMsgCmReviewId",)
+        return CmFunctions.getMessageReview(snapshot,context);
     });
