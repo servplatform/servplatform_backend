@@ -14,16 +14,13 @@ import * as tookanFunctions from './tookan-operations/index'
 export const firestoreInstance = admin.firestore();
 
 export const onTaskCreate = functions.firestore
-    .document('tasks_status/{taskId}')
+    .document('tasks/{taskId}')
     .onCreate((snapshot,context) => {
         console.log('onTaskCreateTriggered')
         return tookanFunctions.createTookanTask(snapshot,context);
-   
     });
 export const onTaskEdit = functions.firestore
     .document('tasks/{taskId}')
-    // .document('tasks/{taskId}/data/{dataId}')
-
     .onUpdate((change,context) => {
         console.log('onTaskEditTriggered',)
         if(change.before.data()==change.after.data()){

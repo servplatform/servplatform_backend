@@ -37,7 +37,7 @@ export async function createTookanTask(snapshot, context) {
         ref_images:newValue.ref_images,
         notify:newValue.notify,
         tags:newValue.tags,
-        geofence:newValue.geofence,
+        geofence:newValue.geofence
         //job_pickup_phone:newValue.job_pickup_phone
     };
     //Create task in tookan
@@ -65,6 +65,15 @@ export async function edittookantask(change, context) {
 
     //const oldValue = change.before.data();
     const newValue = change.after.data();
+    // const jid=firestoreInstance.collection(TASKS_STATUS).doc(taskId).get().then(doc =>{
+    //     if (!doc.exists) {
+    //         console.log('No such User document!');
+    //         throw new Error('No such User document!');
+    //       } else {
+    //         console.log('Document data:', doc.data());
+    //         return doc.data;
+    //       }
+    // });
 
     
 
@@ -82,24 +91,32 @@ export async function edittookantask(change, context) {
         // job_token:newValue.job_token,
         // order_id:newValue.order_id,
         // tracking_link:newValue.tracking_link
-    
+        
+        api_key:TOOKAN_API_KEY,
+        order_id:newValue.order_id,
+        job_description:newValue.job_description,
         customer_email:newValue.customer_email,
-        customer_username: newValue.customer_username,
-        customer_phone: newValue.customer_phone,
-        customer_address: newValue.customer_address,
-        latitude: newValue.latitude,
-        longitude: newValue.longitude,
-        job_description: newValue.job_description,
-        job_pickup_datetime: newValue.job_pickup_datetime,
-        job_delivery_datetime: newValue.job_delivery_datetime,
-        has_pickup: newValue.has_pickup,
-        has_delivery: newValue.has_delivery,
-        layout_type: newValue.layout_type,
-        tracking_link: newValue.tracking_link,
-        timezone: newValue.timezone,
-        api_key: TOOKAN_API_KEY,
-        job_id: newValue.job_id,
-        notify: newValue.notify
+        customer_username:newValue.customer_username,
+        customer_phone:newValue.customer_phone,
+        customer_address:newValue.customer_address,
+        latitude:newValue.latitude,
+        longitude:newValue.longitude,
+        job_delivery_datetime:newValue.job_delivery_datetime,
+        custom_field_template:newValue.custom_field_template,
+        meta_data:newValue.meta_data,
+        team_id:newValue.team_id,
+        auto_assignment:newValue.auto_assignment,
+        has_pickup:newValue.has_pickup,
+        has_delivery:newValue.has_delivery,
+        layout_type:newValue.layout_type,
+        tracking_link:newValue.tracking_link,
+        timezone:newValue.timezone,
+        fleet_id:newValue.fleet_id,
+        ref_images:newValue.ref_images,
+        notify:newValue.notify,
+        tags:newValue.tags,
+        geofence:newValue.geofence,
+        job_id:(await firestoreInstance.collection(TASKS_STATUS).doc(taskId).get())?.data()?.job_id
       };
     //Edit task in tookan
     console.log('Editing tookan task for options: ', options);
@@ -110,12 +127,26 @@ export async function edittookantask(change, context) {
         console.log("Tookan Edit task failed: " + err)
     });
 }
+// function job(taskd:any): any{
+//     firestoreInstance.collection(TASKS_STATUS).doc(taskd).get().then(doc =>{
+//         if (!doc.exists) {
+//                     console.log('No such User document!');
+//                     throw new Error('No such User document!');
+//                   } else{
+//                     let j=doc?.data()?.job_id;
+//                   }
+         
+//     });
+//     return j
+    
+    
+// }
 
 async function updateTaskOnTaskEdit (res,taskId): Promise<string> {
     console.log("Tookan task edited with response successfully for taskId: ",taskId,"Response received from tookan: ",res);
     console.log("Update Task based on response for taskId started",taskId);
     console.log("Updated content for task_id ",taskId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
+    const taskRef = firestoreInstance.collection(TASKS_STATUS).doc(taskId);
     taskRef.set(res.data).then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err));
 	return taskId
 }
