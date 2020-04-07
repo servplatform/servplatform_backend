@@ -44,6 +44,18 @@ async function createRecombeeData(snapshot, context) {
          })
         
              }
+   export async function updateRecombeeData(change, context) {
+               const rqs = recombee.requests;
+               //const data=snapshot.data();
+               const objectID=change.before.id;
+               const data=change.after.data();
+               console.log('oooo',objectID)
+               return client.send(new rqs.SetItemValues(objectID, data)).catch((error) => {
+                console.log('Error sending message:', error);
+                return false;
+                   })
+              
+            }  
      export async function deleteRecombeeItem(snapshot, context) {
              const rqs = recombee.requests;
              const objectID=snapshot.id;
@@ -62,7 +74,7 @@ async function createRecombeeData(snapshot, context) {
              return false;
                    })
                    }
-      export async function createRecombeeUser(snapshot, context) {
+    export async function createRecombeeUser(snapshot, context) {
                   const rqs = recombee.requests;
                   const objectID=snapshot.id;
                   //uid=snapshot.id;
@@ -97,6 +109,17 @@ async function createRecombeeData(snapshot, context) {
              return false;
                 })
                 }
+   export async function updateRecombeeUserData(change, context) {
+                  const rqs = recombee.requests;
+                  //const data=snapshot.data();
+                  const objectID=change.before.id;
+                  const data=change.after.data();
+                  return client.send(new rqs.SetUserValues(objectID, data)).catch((error) => {
+                   console.log('Error sending message:', error);
+                   return false;
+                      })
+                 
+               }  
     export async function deleteRecombeeUser(snapshot, context) {
              const rqs = recombee.requests;
              const objectID=snapshot.id;
@@ -110,14 +133,13 @@ async function createRecombeeData(snapshot, context) {
              const rqs = recombee.requests;
              //const data=snapshot.data();
             const newvalu=Object.keys(snapshot.before.data())[0];
-             console.log(newvalu);
               return client.send(new rqs.DeleteUserProperty(newvalu)).catch((error) => {
              console.log('Error sending message:', error);
             return false;
                })
             
           }  
-   
+    
      export async function AddPurchaseview(snapshot, context) {
                const rqs = recombee.requests;
                const newvalue=snapshot.data();
@@ -149,18 +171,7 @@ async function createRecombeeData(snapshot, context) {
                //const data=snapshot.data();
                const newvalue=snapshot.data();
                const options={
-                  bill_summary_collection:newvalue.bill_summary_collection,
-                  delivery_note:newvalue.delivery_note,
-                  discount_options:newvalue.discount_options,
-                  eta:newvalue.eta,
-                  location:newvalue.location,
-                  order_key:newvalue.order_key,
-                  payment_method:newvalue.payment_method,
-                  promo_codes:newvalue.promo_codes,
-                  provider_key:newvalue.provider_key,
                   service_key:newvalue.service_key,
-                  tip:newvalue.tip,
-                  url:newvalue.url,
                   user_key:newvalue.user_key
                   }
                return client.send(new rqs.AddCartAddition(options.user_key,options.service_key)).catch((error) => {
@@ -213,18 +224,7 @@ async function createRecombeeData(snapshot, context) {
                const newvalue=snapshot.data();
                //const id=snapshot.id;
                const options={
-                  bill_summary_collection:newvalue.bill_summary_collection,
-                  delivery_note:newvalue.delivery_note,
-                  discount_options:newvalue.discount_options,
-                  eta:newvalue.eta,
-                  location:newvalue.location,
-                  order_key:newvalue.order_key,
-                  payment_method:newvalue.payment_method,
-                  promo_codes:newvalue.promo_codes,
-                  provider_key:newvalue.provider_key,
                   service_key:newvalue.service_key,
-                  tip:newvalue.tip,
-                  url:newvalue.url,
                   user_key:newvalue.user_key
                   }
                return client.send(new rqs.DeleteCartAddition(options.user_key,options.service_key)).catch((error) => {
@@ -245,4 +245,92 @@ async function createRecombeeData(snapshot, context) {
             return false;
                }) 
                } 
-      
+      export async function RecommendItemsToUser(data,context){
+         const rqs=recombee.requests;
+         const text=data.text;
+         const location=data.location;
+         const price=data.price;
+         const uid=context.auth.uid;
+         const name = context.auth.token.name || null;
+         console.log('Recommending',text,name,uid)
+         return client.send(new rqs.RecommendItemsToUser(uid,5,{'returnProperties':true,'includedProperties':location,price})).catch((error) => {
+            console.log('Error sending message:', error);
+         return false;
+            }) 
+
+      }
+      export async function RecommendUsersToUser(snapshot,context){
+         const rqs=recombee.requests;
+         const newvalue=snapshot.data();
+         const options={
+            user_key:newvalue.user_key,
+            }
+         return client.send(new rqs.RecommendUsersToUser(options.user_key,5)).catch((error) => {
+            console.log('Error sending message:', error);
+         return false;
+            }) 
+
+         }
+         export async function RecommendItemsToItem(snapshot,context){
+            const rqs=recombee.requests;
+            const newvalue=snapshot.data();
+            const options={
+               target_user_key:newvalue.target_user_key,
+               service_key:newvalue.service_key
+               }
+            return client.send(new rqs.RecommendItemsToItem(options.service_key,options.target_user_key,5)).catch((error) => {
+               console.log('Error sending message:', error);
+            return false;
+               }) 
+   
+         }
+         export async function RecommendUsersToItem(snapshot,context){
+            const rqs=recombee.requests;
+            const newvalue=snapshot.data();
+            const options={
+               service_key:newvalue.service_key
+               }
+            return client.send(new rqs.RecommendUsersToItem(options.service_key,5)).catch((error) => {
+               console.log('Error sending message:', error);
+            return false;
+               }) 
+   
+         }
+         export async function createTestReco(snapshot,context) {
+            const rqs=recombee.requests;
+            return client.send(new rqs.RecommendItemsToUser('Re8521',5,
+            {
+            cascadeCreate:true,
+            scenario: 'homepage',
+            includedProperties:["service_name","available_quantity"],
+            returnProperties:true,
+            logic: 'ecommerce:homepage',
+            filter:"\"0\" in 'available_quantity'",
+            booster:"if 'service_name' == \"Laundry\" then 2 else (if 'service_name' ==\"Shave\" then 1.5 else 1)",
+            diversity:'0.0',
+            minRelevance:'medium',
+            rotationRate:'0.2',
+            rotationTime:'7200.0'
+            }
+            )).then(res => {
+               console.log('Creating Recombee Property');
+               return client.send(new rqs.RecommendUsersToItem('servic_4b',5,
+                {
+                  cascadeCreate:true,
+                  scenario: 'UsersToItem',
+                  returnProperties:true,
+                  includedProperties:["current_city","is_email_verified","is_vendor_verified"],
+                  logic: 'recombee:default',
+                  filter:"if ('is_email_verified'==\"1\"  and 'is_vendor_verified'==\"1\") then true else false ",
+                  booster:"if 'current_city' == \"Chennai\" then 2 else 1",
+                  diversity:'0.0',
+                  minRelevance:'medium',
+                  rotationRate:'0.2',
+                  rotationTime:'7200.0',  
+                  }))
+           }).catch((error) => {
+               console.log('Error sending message:', error);
+            return false;
+               }) 
+         }
+

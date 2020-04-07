@@ -39,29 +39,27 @@ export async function createAlgoliaAgent(snapshot, context) {
     export async function updateAlgoliaAgent(change, context) {
         const newData = change.after.data();
         const object = {
-            objectID: context.params.algoid,
+            objectID:context.params.agentId,
             ...newData
         }
-        console.log('Triggering Create Algolia task',);
         return agentindex.partialUpdateObject(object);
         }
      export async function updateAlgoliaService(change, context) {
             const newData = change.after.data();
             const object = {
-                objectID: context.params.algoid,
+                objectID:context.params.serviceId,
                 ...newData
             }
-            console.log('Triggering Create Algolia task',);
             return serviceindex.partialUpdateObject(object);
             }
     export async function updateAlgoliaJob(change, context) {
-                const newData = change.after.data();
-                const object = {
-                    objectID: context.params.algoid,
-                    ...newData
-                }
-                console.log('Triggering Create Algolia task',);
-                return jobindex.partialUpdateObject(object);
+              const newData = change.after.data();
+              const object = {
+              objectID: context.params.jobId,
+              ...newData
+               }
+
+              return jobindex.partialUpdateObject(object);
                 }
     export async function deleteAlgoliaAgent(snapshot, context) {
                    const objectID=snapshot.id; 

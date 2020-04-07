@@ -1,5 +1,5 @@
 import {
-    TOOKAN_API_KEY,TASKS, AGENTS, USERS, PROVIDERS
+    TOOKAN_API_KEY,TASKS, AGENTS, USERS, PROVIDERS,TASKS_STATUS,AGENTS_STATUS,PROVIDERS_STATUS
 } from "../constants";
 import {firestoreInstance} from "../index";
 import * as Tookan from "tookan-api";
@@ -55,7 +55,7 @@ async function updateTaskOnTaskCreate (res,taskId): Promise<string> {
     console.log("Tookan task created with response successfully for taskId: ",taskId,"Response received from tookan: ",res);
     console.log("Update Task based on response for taskId started",taskId);
     console.log("Updated content for task_id ",taskId,"content: ",res.data());
-    const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
+    const taskRef = firestoreInstance.collection(TASKS_STATUS).doc(taskId);
     taskRef.set(res.data()).then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err));
 	return taskId
 }
@@ -266,7 +266,7 @@ export async function Assigntookantask(snapshot, context) {
 async function tookantaskassign(res,taskId): Promise<string> {
     console.log("Tookan task assigned with response successfully for taskId: ",taskId,"Response received from tookan: ",res);
     console.log("Assign Task based on response for taskId started",taskId);
-    console.log("Task assigned for task_id ",taskId,"content: ",res.data);
+    console.log("Task assigned for task_id ",taskId,"content: ",res.data());
     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
     taskRef.set(res.data()).then(() => console.log("task assigned based on tookan response for taskId:", taskId)).catch(err => console.log("Task assigned based on task id failed for: " + err));
 	return taskId
@@ -348,10 +348,10 @@ export async function getAllTookanAgents(snapshot, context) {
     const options = {
         api_key: TOOKAN_API_KEY,
         tags: newValue.tags,
-        name: newValue.name,
-        fleet_ids: newValue.fleet_id,
+        name: newValue.first_name,
+        fleet_id:(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.fleet_id,
         include_any_tag: newValue.include_any_tag,
-        status: newValue.status,
+        status:(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.status,
         fleet_type: newValue.fleet_type
       };
     //Get all agents in tookan
@@ -369,7 +369,7 @@ async function tookangetallagents(res,agentId): Promise<string> {
     console.log("Getting all agents based on response for agentId started",agentId);
     console.log("All agents for agent_id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data()).then(() => console.log("Getting all agents based on agent Id:", agentId)).catch(err => console.log("Getting all agents based on agent id failed for: " + err));
+    taskRef.set(res.data).then(() => console.log("Getting all agents based on agent Id:", agentId)).catch(err => console.log("Getting all agents based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -412,22 +412,22 @@ async function tookanaddagents(res,agentId): Promise<string> {
     console.log("Tookan add agents with response successfully for agentId: ",agentId,"Response received from tookan: ",res);
     console.log("Adding agents based on response for agentId started",agentId);
     console.log("Agent added for agent id ",agentId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data()).then(() => console.log("Adding agents based on agent Id:", agentId)).catch(err => console.log("Update agents based on agent id failed for: " + err));
+    const taskRef = firestoreInstance.collection(AGENTS_STATUS).doc(agentId);
+    taskRef.set(res.data).then(() => console.log("Adding agents based on agent Id:", agentId)).catch(err => console.log("Update agents based on agent id failed for: " + err));
 	return agentId
 }
 
 export async function EditTookanAgents(snapshot, context) {
     
     const agentId = context.params.agentId;
-    const newValue = snapshot.data();
+    const newValue = snapshot.after.data();
     
 
     console.log('Triggering edit tookan agent for agent Id', agentId, newValue);
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        fleet_id: newValue.fleet_id,
+        fleet_id:(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.fleet_id,
         email: newValue.email,
         phone: newValue.phone,
         transport_type: newValue.transport_type,
@@ -456,22 +456,24 @@ async function tookaneditagents(res,agentId): Promise<string> {
     console.log("Tookan edit agents with response successfully for agentId: ",agentId,"Response received from tookan: ",res);
     console.log("Editing agents information based on response for agentId started",agentId);
     console.log("Agent information edited for agent id ",agentId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data()).then(() => console.log("Editing agent information based on agent Id:", agentId)).catch(err => console.log("Editing agents information based on agent id failed for: " + err));
+    //const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
+    //taskRef.set(res.data).then(() => 
+    console.log("Editing agent information based on agent Id:", agentId)
+    //).catch(err => console.log("Editing agents information based on agent id failed for: " + err));
 	return agentId
 }
 
 export async function BlockorUnblockTookanAgents(snapshot, context) {
     
     const agentId = context.params.agentId;
-    const newValue = snapshot.data();
+    const newValue = snapshot.after.data();
     
 
     console.log('Triggering Block or Unblock tookan agent for agent Id', agentId, newValue);
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        fleet_id: newValue.fleet_id,
+        fleet_id:(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.fleet_id,
         block_status: newValue.block_status,
         unblock_on_date:newValue.unblock_on_date
       };
@@ -489,26 +491,26 @@ export async function BlockorUnblockTookanAgents(snapshot, context) {
 async function tookanblockorunblockagents(res,agentId): Promise<string> {
     console.log("Tookan agents blocked or unblocked successfully for agentId: ",agentId,"Response received from tookan: ",res);
     console.log("Blocking or Unblocking agent based on response for agentId started",agentId);
-    console.log("Agent blocked or unblocked for agent id ",agentId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data()).then(() => console.log("Editing agent block/unblock status based on agent Id:", agentId)).catch(err => console.log("Editing agents block/unblock status based on agent id failed for: " + err));
+    console.log("Agent blocked or unblocked for agent id ",agentId,"content: ",res.data)
+    //const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
+    // taskRef.set(res.data).then(() => 
+    console.log("Editing agent block/unblock status based on agent Id:", agentId)
+    //).catch(err => console.log("Editing agents block/unblock status based on agent id failed for: " + err));
 	return agentId
 }
 
 export async function DeleteTookanAgents(snapshot, context) {
     
     const agentId = context.params.agentId;
-    const newValue = snapshot.data();
-    
+    const deletedvalue = snapshot.data();
 
-    console.log('Triggering Block or Unblock tookan agent for agent Id', agentId, newValue);
+    console.log('Triggering Block or Unblock tookan agent for agent Id', agentId, deletedvalue);
 
-    const options = {
-        api_key: TOOKAN_API_KEY,
-        fleet_id: newValue.fleet_id,
-      };
-    
       //Delete agents in tookan
+      const options = {
+        api_key: TOOKAN_API_KEY,
+        fleet_id:(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.fleet_id,
+      };
     console.log('Deleting tookan agents for options: ', options);
     return client.deleteAgent(options).then(res => {
         return tookandeleteagents(res,agentId);   
@@ -522,8 +524,8 @@ async function tookandeleteagents(res,agentId): Promise<string> {
     console.log("Tookan agents deleted successfully for agentId: ",agentId,"Response received from tookan: ",res);
     console.log("Deleting agent based on response for agentId started",agentId);
     console.log("Agent Deleted for agent id ",agentId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data()).then(() => console.log("Deleting agent successfully based on agent Id:", agentId)).catch(err => console.log("Deleting agents based on agent id failed for: " + err));
+    const taskRef = firestoreInstance.collection(AGENTS_STATUS).doc(agentId);
+    taskRef.set(res.data).then(() => console.log("Deleting agent successfully based on agent Id:", agentId)).catch(err => console.log("Deleting agents based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -537,7 +539,7 @@ export async function ViewTookanAgentsProfile(snapshot, context) {
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        fleet_id: newValue.fleet_id,
+        fleet_id:(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.fleet_id,
       };
     
       //View agents profile in tookan
@@ -555,21 +557,21 @@ async function tookanviewagentsprofile(res,agentId): Promise<string> {
     console.log("Viewing agent profile based on response for agentId started",agentId);
     console.log("Agent profile viewed for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data()).then(() => console.log("Profile of tookan agent viewed successfully based for agent Id:", agentId)).catch(err => console.log("Viewing agents profile based on agent id failed for: " + err));
+    taskRef.set(res.data).then(() => console.log("Profile of tookan agent viewed successfully based for agent Id:", agentId)).catch(err => console.log("Viewing agents profile based on agent id failed for: " + err));
 	return agentId
 }
 
 export async function UpdateTookanAgentTags(snapshot, context) {
     
     const agentId = context.params.agentId;
-    const newValue = snapshot.data();
+    const newValue = snapshot.after.data();
     
 
     console.log('Triggering Update Tookan agent Tags profile for agent Id', agentId, newValue);
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        fleet_id: newValue.fleet_id,
+        fleet_id:(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.fleet_id,
         tags: newValue.tags
       };
     
@@ -587,8 +589,10 @@ async function tookanupdateagenttags(res,agentId): Promise<string> {
     console.log("Tookan agents tags updated successfully for agentId: ",agentId,"Response received from tookan: ",res);
     console.log("Updating agent tags based on response for agentId started",agentId);
     console.log("Agent tags updated for agent id ",agentId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data()).then(() => console.log("Tags of tookan agent updated successfully based on agent Id:", agentId)).catch(err => console.log("Updating agents tags based on agent id failed for: " + err));
+    //const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
+    //taskRef.set(res.data).then(() => 
+    console.log("Tags of tookan agent updated successfully based on agent Id:", agentId)
+   // ).catch(err => console.log("Updating agents tags based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -602,9 +606,7 @@ export async function GetTookanAgentTags(snapshot, context) {
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        fleet_id: newValue.fleet_id,
-        team_id:newValue.team_id
-
+        fleet_id:(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.fleet_id,      
       };
     
       //Get agents tags in tookan
@@ -622,7 +624,7 @@ async function tookangetagenttags(res,agentId): Promise<string> {
     console.log("Get agent tags based on response for agentId started",agentId);
     console.log("Agent tags viewed for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data()).then(() => console.log("Tags of tookan agent viewed successfully based on agent Id:", agentId)).catch(err => console.log("Getting agents tags based on agent id failed for: " + err));
+    taskRef.set(res.data).then(() => console.log("Tags of tookan agent viewed successfully based on agent Id:", agentId)).catch(err => console.log("Getting agents tags based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -655,7 +657,7 @@ async function tookangetagentlogs(res,agentId): Promise<string> {
     console.log("Get agent logs based on response for agentId started",agentId);
     console.log("Agent logs viewed for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data()).then(() => console.log("Logs of tookan agent viewed successfully based on agent Id:", agentId)).catch(err => console.log("Getting agents logs based on agent id failed for: " + err));
+    taskRef.set(res.data).then(() => console.log("Logs of tookan agent viewed successfully based on agent Id:", agentId)).catch(err => console.log("Getting agents logs based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -669,7 +671,7 @@ export async function GetTookanAgentLocation(snapshot, context) {
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        fleet_id: newValue.fleet_id
+        fleet_id:(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.fleet_id,      
       };
     
       //Get agents location in tookan
@@ -687,7 +689,7 @@ async function tookangetagentlocation(res,agentId): Promise<string> {
     console.log("Get agent location based on response for agentId started",agentId);
     console.log("Agent location viewed for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data()).then(() => console.log("Location of tookan agent viewed successfully based on agent Id:", agentId)).catch(err => console.log("Getting agents location based on agent id failed for: " + err));
+    taskRef.set(res.data).then(() => console.log("Location of tookan agent viewed successfully based on agent Id:", agentId)).catch(err => console.log("Getting agents location based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -701,7 +703,7 @@ export async function SendAgentNotification(snapshot, context) {
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        fleet_id: newValue.fleet_id,
+        fleet_id:(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.fleet_id, 
         message: newValue.message
       };
     
@@ -753,23 +755,23 @@ async function tookangetagentschedule(res,agentId): Promise<string> {
     console.log("Viewing agent Schedule based on response for agentId started",agentId);
     console.log("Schedule seen for agent id ",agentId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data()).then(() => console.log("Schedule of tookan agent seen successfully based on agent Id:", agentId)).catch(err => console.log(" Getting Schedule based on agent id failed for: " + err));
+    taskRef.set(res.data).then(() => console.log("Schedule of tookan agent seen successfully based on agent Id:", agentId)).catch(err => console.log(" Getting Schedule based on agent id failed for: " + err));
 	return agentId
 }
 
 export async function AssignTookanAgentTask(snapshot, context) {
     
     const agentId = context.params.agentId;
-    const newValue = snapshot.data();
+    const newValue = snapshot.after.data();
     
 
     console.log('Triggering Assign Tookan agent Task for agent Id', agentId, newValue);
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        job_id: newValue.job_id,
+        job_id:newValue.job_id,
         team_id: newValue.team_id,
-        fleet_id: newValue.fleet_id,
+        fleet_id:(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.fleet_id,
         notify: newValue.notify,
         geofence: newValue.geofence,
         job_status: newValue.job_status
@@ -789,8 +791,10 @@ async function assigntasktoagent(res,agentId): Promise<string> {
     console.log("Task assigned successfully for agentId: ",agentId,"Response received from tookan: ",res);
     console.log("Assigning agent task based on response for agentId started",agentId);
     console.log("Task assigned to agent id ",agentId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
-    taskRef.set(res.data()).then(() => console.log("Task assigned successfully based on agent Id:", agentId)).catch(err => console.log("Task assigning based on agent id failed for: " + err));
+    //const taskRef = firestoreInstance.collection(AGENTS).doc(agentId);
+    //taskRef.set(res.data()).then(() => 
+    console.log("Task assigned successfully based on agent Id:", agentId)
+    //).catch(err => console.log("Task assigning based on agent id failed for: " + err));
 	return agentId
 }
 
@@ -1001,7 +1005,7 @@ async function CustomerDelete(res,customerId): Promise<string> {
 
 export async function CreateNewMerchant(snapshot, context) {
     
-    const merchantId = context.params.customerId;
+    const merchantId = context.params.providerId;
     const newValue = snapshot.data();
     
 
@@ -1015,21 +1019,21 @@ export async function CreateNewMerchant(snapshot, context) {
         company_name: newValue.provider_name ,
         email: newValue.new_email ,
         timezone: newValue.timezone,
-        phone_directory: {
-          phone: newValue.phone,
-          country_code: newValue.country_code
+        phone_directory:{
+          phone: newValue.phone_directory.phone,
+          country_code: newValue.phone_directory.country_code
         },
         merchant_permission: {
-          view_task: newValue.view_task,
-          add_task: newValue.add_task,
-          add_team: newValue.add_team ,
-          view_team: newValue.view_team ,
-          add_region: newValue.add_region ,
-          view_region: newValue.view_region ,
-          add_agent: newValue.add_agent,
-          view_agent: newValue.view_agent ,
-          view_fleet_avalibility: newValue.view_fleet_avalibility ,
-          edit_fleet_avalibility: newValue.edit_fleet_avalibility 
+          view_task: newValue.merchant_permission.view_task,
+          add_task: newValue.merchant_permission.add_task,
+          add_team: newValue.merchant_permission.add_team ,
+          view_team: newValue.merchant_permission.view_team ,
+          add_region: newValue.merchant_permission.add_region ,
+          view_region: newValue.merchant_permission.view_region ,
+          add_agent: newValue.merchant_permission.add_agent,
+          view_agent: newValue.merchant_permission.view_agent ,
+          view_fleet_avalibility: newValue.merchant_permission.view_fleet_avalibility ,
+          edit_fleet_avalibility: newValue.merchant_permission.edit_fleet_avalibility 
         },
         commission_percentage: newValue.commission_percentage,
         password: newValue.password,
@@ -1052,15 +1056,15 @@ async function NewMerchant(res,merchantId): Promise<string> {
     console.log("Creating new merchant for merchant ID: ",merchantId,"Response received from tookan: ",res);
     console.log("Creating new merchants based on response for merchantId started",merchantId);
     console.log("Creating new merchants for merchant Id ",merchantId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data()).then(() => console.log("Creating new merchants for merchant Id:", merchantId)).catch(err => console.log("Creating new merchants for merchant id failed for: " + err));
+    const taskRef = firestoreInstance.collection(PROVIDERS_STATUS).doc(merchantId);
+    taskRef.set(res.data).then(() => console.log("Creating new merchants for merchant Id:", merchantId)).catch(err => console.log("Creating new merchants for merchant id failed for: " + err));
 	return merchantId
 }
 
 export async function EditTookanMerchant(snapshot, context) {
     
-    const merchantId = context.params.customerId;
-    const newValue = snapshot.data();
+    const merchantId = context.params.providerId;
+    const newValue = snapshot.after.data();
     
 
     console.log('Triggering edit merchant for merchant Id', merchantId, newValue);
@@ -1074,23 +1078,23 @@ export async function EditTookanMerchant(snapshot, context) {
         email: newValue.new_email ,
         timezone: newValue.timezone,
         phone_directory: {
-          phone: newValue.phone,
-          country_code: newValue.country_code
+          phone: newValue.phone_directory.phone,
+          country_code: newValue.phone_directory.country_code
         },
         merchant_permission: {
-          view_task: newValue.view_task,
-          add_task: newValue.add_task,
-          add_team: newValue.add_team ,
-          view_team: newValue.view_team ,
-          add_region: newValue.add_region ,
-          view_region: newValue.view_region ,
-          add_agent: newValue.add_agent,
-          view_agent: newValue.view_agent ,
-          view_fleet_avalibility: newValue.view_fleet_avalibility ,
-          edit_fleet_avalibility: newValue.edit_fleet_avalibility 
+          view_task: newValue.merchant_permission.view_task,
+          add_task: newValue.merchant_permission.add_task,
+          add_team: newValue.merchant_permission.add_team ,
+          view_team: newValue.merchant_permission.view_team ,
+          add_region: newValue.merchant_permission.add_region ,
+          view_region: newValue.merchant_permission.view_region ,
+          add_agent: newValue.merchant_permission.add_agent,
+          view_agent: newValue.merchant_permission.view_agent ,
+          view_fleet_avalibility: newValue.merchant_permission.view_fleet_avalibility ,
+          edit_fleet_avalibility: newValue.merchant_permission.edit_fleet_avalibility 
         },
         commission_percentage: newValue.commission_percentage,
-        merchant_id: newValue.merchant_id,
+        merchant_id:(await firestoreInstance.collection(PROVIDERS_STATUS).doc(merchantId).get())?.data()?.merchant_id,
         api_key: TOOKAN_API_KEY,
         user_id: newValue.user_id
       };
@@ -1109,14 +1113,16 @@ async function MerchantEdit(res,merchantId): Promise<string> {
     console.log("Editing merchant for merchant ID: ",merchantId,"Response received from tookan: ",res);
     console.log("Editing merchants based on response for merchantId started",merchantId);
     console.log("Editing merchants for merchant Id ",merchantId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data()).then(() => console.log("Editing merchants for merchant Id:", merchantId)).catch(err => console.log("Editing merchants for merchant id failed for: " + err));
+    //const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
+    //taskRef.set(res.data).then(() => 
+    console.log("Editing merchants for merchant Id:", merchantId)
+    //).catch(err => console.log("Editing merchants for merchant id failed for: " + err));
 	return merchantId
 }
 
 export async function ViewTookanMerchant(snapshot, context) {
     
-    const merchantId = context.params.customerId;
+    const merchantId = context.params.providerId;
     const newValue = snapshot.data();
     
 
@@ -1142,13 +1148,13 @@ async function MerchantView(res,merchantId): Promise<string> {
     console.log("Viewing merchants based on response for merchantId started",merchantId);
     console.log("Viewing merchants for merchant Id ",merchantId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data()).then(() => console.log("Viewing merchants for merchant Id:", merchantId)).catch(err => console.log("Viewing merchants for merchant id failed for: " + err));
+    taskRef.set(res.data).then(() => console.log("Viewing merchants for merchant Id:", merchantId)).catch(err => console.log("Viewing merchants for merchant id failed for: " + err));
 	return merchantId
 }
 
 export async function GetMerchantDetails(snapshot, context) {
     
-    const merchantId = context.params.customerId;
+    const merchantId = context.params.providerId;
     const newValue = snapshot.data();
     
 
@@ -1174,13 +1180,13 @@ async function MerchantDetails(res,merchantId): Promise<string> {
     console.log("Getting merchants details based on response for merchantId started",merchantId);
     console.log("Getting merchants details for merchant Id ",merchantId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data()).then(() => console.log("Getting merchants details for merchant Id:", merchantId)).catch(err => console.log("Getting merchants details for merchant id failed for: " + err));
+    taskRef.set(res.data).then(() => console.log("Getting merchants details for merchant Id:", merchantId)).catch(err => console.log("Getting merchants details for merchant id failed for: " + err));
 	return merchantId
 }
 
 export async function GetMerchantReports(snapshot, context) {
     
-    const merchantId = context.params.customerId;
+    const merchantId = context.params.providerId;
     const newValue = snapshot.data();
     
 
@@ -1207,14 +1213,46 @@ async function MerchantReports(res,merchantId): Promise<string> {
     console.log("Getting merchants reports based on response for merchantId started",merchantId);
     console.log("Getting merchants reports for merchant Id ",merchantId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data()).then(() => console.log("Getting merchants reports for merchant Id:", merchantId)).catch(err => console.log("Getting merchants reports for merchant id failed for: " + err));
+    taskRef.set(res.data).then(() => console.log("Getting merchants reports for merchant Id:", merchantId)).catch(err => console.log("Getting merchants reports for merchant id failed for: " + err));
+	return merchantId
+}
+export async function GetMerchantTeam(snapshot, context) {
+    
+    const merchantId = context.params.providerId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering get merchant team for merchant Id', merchantId, newValue);
+
+    const options = {
+        api_key: TOOKAN_API_KEY,
+        get_team_flag: 2,
+        merchant_id: newValue.merchant_id
+      };
+    
+      //Getting merchant reports in tookan
+    console.log('Getting merchant teams for options: ', options);
+    return client.getMerchantTeams(options).then(res => {
+        return MerchantTeams(res,merchantId);   
+    })
+    .catch(err => {
+        console.log("Getting merchant teams failed: " + err)
+    });
+}
+
+async function MerchantTeams(res,merchantId): Promise<string> {
+    console.log("Getting merchant teams for merchant ID: ",merchantId,"Response received from tookan: ",res);
+    console.log("Getting merchants teams based on response for merchantId started",merchantId);
+    console.log("Getting merchants teams for merchant Id ",merchantId,"content: ",res.data);
+    const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
+    taskRef.set(res.data).then(() => console.log("Getting merchants teams for merchant Id:", merchantId)).catch(err => console.log("Getting merchants teams for merchant id failed for: " + err));
 	return merchantId
 }
 
 export async function BlockUnblockMerchant(snapshot, context) {
     
-    const merchantId = context.params.customerId;
-    const newValue = snapshot.data();
+    const merchantId = context.params.providerId;
+    const newValue = snapshot.after.data();
     
 
     console.log('Triggering block or unblock merchants for merchant Id', merchantId, newValue);
@@ -1222,7 +1260,7 @@ export async function BlockUnblockMerchant(snapshot, context) {
     const options = {
         api_key: TOOKAN_API_KEY,
         is_blocked: newValue.is_blocked,
-        merchant_id: newValue.merchant_id
+        merchant_id:(await firestoreInstance.collection(PROVIDERS_STATUS).doc(merchantId).get())?.data()?.merchant_id
       };
     
       //Blocking or Unblocking merchants in tookan
@@ -1239,14 +1277,16 @@ async function MerchantBlockUnblock(res,merchantId): Promise<string> {
     console.log("Blocking/Unblocking merchants for merchant ID: ",merchantId,"Response received from tookan: ",res);
     console.log("Blocking/Unblocking merchants based on response for merchantId started",merchantId);
     console.log("Blocking/Unblocking merchants for merchant Id ",merchantId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data()).then(() => console.log("Blocking/Unblocking merchants for merchant Id:", merchantId)).catch(err => console.log("Blocking/Unblocking merchants for merchant id failed for: " + err));
+   // const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
+    //taskRef.set(res.data).then(() => 
+    console.log("Blocking/Unblocking merchants for merchant Id:", merchantId)
+    //).catch(err => console.log("Blocking/Unblocking merchants for merchant id failed for: " + err));
 	return merchantId
 }
 
-export async function AvailableMerchantAgents(snapshot, context) {//how?
+export async function AvailableMerchantAgents(snapshot, context) {
     
-    const merchantId = context.params.customerId;
+    const merchantId = context.params.providerId;
     const newValue = snapshot.data();
     
 
@@ -1274,24 +1314,24 @@ async function MerchantAvailableAgents(res,merchantId): Promise<string> {
     console.log("Getting Available merchants agents based on response for merchantId started",merchantId);
     console.log("Getting Available merchants agents for merchant Id ",merchantId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data()).then(() => console.log("Getting Available merchants agents for merchant Id:", merchantId)).catch(err => console.log("Getting Available merchants agents for merchant id failed for: " + err));
+    taskRef.set(res.data).then(() => console.log("Getting Available merchants agents for merchant Id:", merchantId)).catch(err => console.log("Getting Available merchants agents for merchant id failed for: " + err));
 	return merchantId
 }
 
 export async function AssignMerchantAgentsTask(snapshot, context) {
     
-    const merchantId = context.params.customerId;
-    const newValue = snapshot.data();
+    const merchantId = context.params.providerId;
+    const newValue = snapshot.after.data();
     
 
     console.log('Triggering assign task to merchant agents for merchant Id', merchantId, newValue);
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        merchant_id: newValue.merchant_id,
+        merchant_id:(await firestoreInstance.collection(PROVIDERS_STATUS).doc(merchantId).get())?.data()?.merchant_id,
         job_id: newValue.job_id,
-        team_id: newValue.team_id,
-        fleet_id: newValue.fleet_id,
+        team_id:newValue.team_id,
+        fleet_id:newValue.fleet_id,
         job_status: newValue.job_status,
         notify:newValue.notify,
         geofence:newValue.geofence
@@ -1311,7 +1351,90 @@ async function MerchantTasktoAgents(res,merchantId): Promise<string> {
     console.log("Assigning tasks to merchant agents for merchant ID: ",merchantId,"Response received from tookan: ",res);
     console.log("Assigning tasks to merchant agents based on response for merchantId started",merchantId);
     console.log("Assigning tasks to merchant agents for merchant Id ",merchantId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data()).then(() => console.log("Assigning tasks to merchant agents for merchant Id:", merchantId)).catch(err => console.log("Assigning tasks to merchant agents for merchant id failed for: " + err));
+    //const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
+    //taskRef.set(res.data).then(() => 
+    console.log("Assigning tasks to merchant agents for merchant Id:", merchantId)
+    //).catch(err => console.log("Assigning tasks to merchant agents for merchant id failed for: " + err));
 	return merchantId
+}
+export async function AssignMerchantToTask(snapshot, context) {
+    
+    const merchantId = context.params.providerId;
+    const newValue = snapshot.after.data();
+    
+
+    console.log('Triggering assign task to merchant for merchant Id', merchantId, newValue);
+
+    const options = {
+        api_key: TOOKAN_API_KEY,
+        merchant_id:(await firestoreInstance.collection(PROVIDERS_STATUS).doc(merchantId).get())?.data()?.merchant_id,
+        user_id:newValue.user_id,
+        job_id: newValue.job_id,
+        team_id: newValue.team_id,
+        fleet_id: newValue.fleet_id,
+        job_status: newValue.job_status,
+      };
+    
+      //Assigning tasks to merchant agents in tookan
+    console.log('Assigning tasks to merchant for options: ', options);
+    return client.assignMerchantToTask(options).then(res => {
+        return MerchantToTask(res,merchantId);   
+    })
+    .catch(err => {
+        console.log("Assigning tasks to merchant agents failed: " + err)
+    });
+}
+
+async function MerchantToTask(res,merchantId): Promise<string> {
+    console.log("Assigning tasks to merchant  for merchant ID: ",merchantId,"Response received from tookan: ",res);
+    console.log("Assigning tasks to merchant  based on response for merchantId started",merchantId);
+    console.log("Assigning tasks to merchant  for merchant Id ",merchantId,"content: ",res.data);
+    //const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
+    //taskRef.set(res.data).then(() => 
+    console.log("Assigning tasks to merchant for merchant Id:", merchantId)
+    //).catch(err => console.log("Assigning tasks to merchant agents for merchant id failed for: " + err));
+	return merchantId
+}
+export async function DeleteTookanMerchant(snapshot, context) {
+    
+    const merchantId = context.params.providerId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering delete merchant for merchant Id', merchantId, newValue);
+    const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+    //const XMLHttpRequest = require('xhr2');
+    const request = new XMLHttpRequest();
+
+    request.open('POST', 'https://api.tookanapp.com/v2/merchant/delete');
+    
+    request.setRequestHeader('Content-Type', 'application/json');
+    
+    
+    
+    const body = {
+      'api_key': TOOKAN_API_KEY,
+      'merchant_id':newValue.merchant_id
+    };
+    
+    request.send(JSON.stringify(body));
+}
+export async function TookanWebHook(snapshot, context) {
+    
+    const merchantId = context.params.providerId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering create Tookan WebHook for ', merchantId, newValue);
+    const request = new XMLHttpRequest();
+
+    request.open('POST', 'https://api.tookanapp.com/v2/set_tookan_shared_secret_key');
+
+    request.setRequestHeader('Content-Type', 'application/json');
+    const body = {
+    'api_key':TOOKAN_API_KEY,
+    'tookan_shared_secret':newValue.tookan_shared_secret
+    };
+
+    request.send(JSON.stringify(body));
 }
