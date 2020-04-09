@@ -416,60 +416,125 @@ export const onUpdateJob = functions.firestore
      return recombeeFunctions.createTestReco(snapshot,context) 
               
         });
-   
 
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                                /* if (!context.auth) {
-                                    throw new functions.https.HttpsError('failed-precondition', 'The function must be called ' +
-                                        'while authenticated.');
-                                  }
-                                  // [END messageHttpsErrors]
-                                
-                                  // [START authIntegration]
-                                  // Authentication / user information is automatically added to the request.
-                                  const uid = context.auth.uid;
-                                  const name = context.auth.token.name || null;
-                                  const picture = context.auth.token.picture || null;
-                                  const email = context.auth.token.email || null;
-                                  // [END authIntegration]
-                                
-                                  // [START returnMessageAsync]
-                                  // Saving the new message to the Realtime Database.
-                                  return admin.database().ref('/messages').push({
-                                    author: { uid, name, picture, email },
-                                  }).then(() => {
-                                    console.log('New Message written');
-                                   
-                                  // [END returnMessageAsync]
-                                    
-                                  // [END_EXCLUDE]
-                                });
-                                    })*/
+    export const webhookfunc=functions.https.onRequest((req, res) => {
 
+       // const data = JSON.stringify({ "name": "Princess Leia" })
+        
+        /*const options = {
+          hostname: "https://us-central1-servplatform-d4668.cloudfunctions.net/webhookfunc",
+          port: 443,
+          path: "/",
+          method: "GET",
+          }*/
+         /* rest.getJSON(options, (statusCode, result) => {
+            // I could work with the resulting HTML/JSON here. I could also just return it
+            console.log(`onResult: (${statusCode})\n\n${JSON.stringify(result)}`);
+          
+            res.statusCode = statusCode;
+          
+            res.send(result);
+          });*/
+        //req = functions.https(options, res => {
+
+        //const res = https.request(options)
+         //req.send(options)
+       // res.write(options)
+        //res.end()
+        const axios = require('axios');
+
+        axios.get('https://webhook.site/171db335-5c1a-4dd4-ac2e-8a0e6e557c78')
+        .then(response => {
+        console.log(response.data.url);
+        console.log(response.data.explanation);
+    })
+    .catch(error => {
+        console.log(error);
+  });
+       
+        })
+          
+         
+       
     
+    const WEBHOOK_URL = 'https://webhook.site/171db335-5c1a-4dd4-ac2e-8a0e6e557c78';
+    const request = require('request-promise');
 
-
-
-
-
-
+    // Reads the content of the node that triggered the function and sends it to the registered Webhook
+    // URL.
+    exports.webhook = functions.firestore.document('hooks/{hookId}').onCreate(async (snap) => {
+      const response = await request({
+        uri: WEBHOOK_URL,
+        method: 'POST',
+        json: true,
+        body: snap.data(),
+        resolveWithFullResponse: true,
+      });
+     
+      if (response.statusCode >= 400) {
+        throw new Error(`HTTP Error: ${response.statusCode}`);
+      }
+      console.log('SUCCESS! Posted', snap.ref);
+    });
+    export const webhook1=functions.https.onRequest((req, res) => {
+        const body = req.body; //body is an array of JavaScript objects
     
+        const promises = [] as  any;
+    
+        Array.prototype.forEach.call(body,elem => {
+    
+            const event = elem.event;
+            const eventTimestamp = elem.timestamp;
+            const hookId = elem.hookId;
+    
+            const updateObj = {};
+            updateObj[event] = true;
+            updateObj[event + 'Timestamp'] = eventTimestamp;
+    
+            promises.push((admin.firestore().collection('hooks').doc(hookId).update(updateObj)));
+    
+        });
+    
+        return Promise.all(promises)
+            .then(() => {
+                 res.status(200).end();
+                 return;
+            }).then(()=>{
+                 res.redirect(303,'https://console.firebase.google.com/u/0/project/servplatform-d4668/database/firestore/data~2Fhooks~2Faaaaa');
+                 return;
+            })
+        })
+        
+exports.webhook2 = functions.https.onRequest((req,res) => {
+               return tookanFunctions.Webhooka(req,res).then(res1=>{
+               admin.firestore().collection('hooks').doc('aaaaa').set({
+                   WebhookEnabled:"Enabled"
+               }).then(snapshot=>{
+                   res.redirect(303,'https://console.firebase.google.com/u/0/project/servplatform-d4668/database/firestore/data~2Fhooks~2Faaaaa');
+               }).catch(err => {
+                console.log("Getting Available merchant agents failed: " + err)
+            });
+            })
+        })
+
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                             
