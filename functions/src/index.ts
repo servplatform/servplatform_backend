@@ -506,7 +506,10 @@ export const onUpdateJob = functions.firestore
         })
         
 exports.webhook2 = functions.https.onRequest((req,res) => {
+               console.log(req.body)
+               console.log(req.body.fleet_id)
                return tookanFunctions.Webhooka(req,res).then(res1=>{
+
                admin.firestore().collection('hooks').doc('aaaaa').set({
                    WebhookEnabled:"Enabled"
                }).then(snapshot=>{
