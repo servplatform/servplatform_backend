@@ -1438,19 +1438,24 @@ export async function TookanWebHook(snapshot, context) {
 
     request.send(JSON.stringify(body));
 }
-const WEBHOOK_URL = 'https://webhook.site/171db335-5c1a-4dd4-ac2e-8a0e6e557c78';
-const request1 = require('request-promise');
-export async function Webhooka(req,res){
-    const response = await request1({
-        uri: WEBHOOK_URL,
-        method: 'GET',
-        json: true,
-        body: res.data,
-        resolveWithFullResponse: true,
-      });
-     
-      if (response.statusCode >= 400) {
-        throw new Error(`HTTP Error: ${response.statusCode}`);
-      }
-      console.log('SUCCESS! Posted', req.data);
-    }
+export async function UpdateJobStatus(req,res){
+    const taskref = firestoreInstance.collection('tasks_status');
+          taskref.where('job_id', '==',req.body.job_id).get()
+            .then(snapshot => {
+            if (snapshot.empty) {
+            console.log('Error.');
+             return;
+             }  
+        snapshot.forEach(doc => {
+          console.log(doc.id, '=>', doc.data());
+          taskref.doc(doc.id).update({
+            job_status:req.body
+        }).catch(err => {
+         console.log("Getting onRequests failed: " + err)
+     });
+        });
+       
+    }).catch(err => {
+        console.log("Getting onRequests failed: " + err)
+    });
+}
