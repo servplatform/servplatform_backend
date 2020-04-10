@@ -1448,9 +1448,7 @@ export async function UpdateJobStatus(req,res){
              }  
         snapshot.forEach(doc => {
           console.log(doc.id, '=>', doc.data());
-          taskref.doc(doc.id).update({
-            job_status:req.body
-        }).catch(err => {
+          taskref.doc(doc.id).update(req.body).catch(err => {
          console.log("Getting onRequests failed: " + err)
      });
         });
