@@ -758,6 +758,72 @@ async function tookangetagentschedule(res,agentId): Promise<string> {
     taskRef.set(res.data).then(() => console.log("Schedule of tookan agent seen successfully based on agent Id:", agentId)).catch(err => console.log(" Getting Schedule based on agent id failed for: " + err));
 	return agentId
 }
+export async function GetTookanActivityTimeline(snapshot, context) {
+    const agentId = context.params.agentId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering Get Tookan agent Schedule for agent Id', agentId, newValue);
+   
+    const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+    const request = new XMLHttpRequest();
+
+    request.open('POST', 'https://api.tookanapp.com/v2/fleet_activity_timeline');
+    
+    request.setRequestHeader('Content-Type', 'application/json');
+    const body = {
+      'api_key': TOOKAN_API_KEY,
+      'fleet_id':(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.fleet_id, 
+      'timezone': newValue.timezone,
+      'date': newValue.date,
+      'start_time': newValue.start_time,
+      'end_time': newValue.end_time
+    };
+    
+    request.send(JSON.stringify(body));
+}
+export async function GetTookanAgentRating(snapshot, context) {
+    const agentId = context.params.agentId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering Get Tookan agent Schedule for agent Id', agentId, newValue);
+
+    const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+    const request = new XMLHttpRequest();
+    request.open('POST', 'https://api.tookanapp.com/v2/fleet_ratings_and_reviews');
+
+    request.setRequestHeader('Content-Type', 'application/json');
+
+
+
+    const body = {
+    'api_key':TOOKAN_API_KEY,
+    'fleet_ids':newValue.fleet_ids
+    };
+
+    request.send(JSON.stringify(body));
+}
+export async function GetTookanAgentNearCustomer(snapshot, context) {
+    const agentId = context.params.agentId;
+    const newValue = snapshot.data();
+    console.log('Triggering Get Tookan agent Schedule for agent Id', agentId, newValue);
+    const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+    const request = new XMLHttpRequest();
+    request.open('POST', 'https://api.tookanapp.com/v2/get_fleets_near_customer');
+
+    request.setRequestHeader('Content-Type', 'application/json');
+
+
+
+    const body = {
+    'api_key': TOOKAN_API_KEY,
+    'customer_id': newValue.customer_id,
+    'radius_in_metres': newValue.radius_in_metres
+    };
+
+    request.send(JSON.stringify(body));
+    }
 
 export async function AssignTookanAgentTask(snapshot, context) {
     
@@ -796,6 +862,74 @@ async function assigntasktoagent(res,agentId): Promise<string> {
     console.log("Task assigned successfully based on agent Id:", agentId)
     //).catch(err => console.log("Task assigning based on agent id failed for: " + err));
 	return agentId
+}
+export async function AssignTookanAgentRelatedTask(snapshot, context) {
+    
+    const agentId = context.params.agentId;
+    const newValue = snapshot.after.data();
+    
+
+    console.log('Triggering Assign Tookan agent Task for agent Id', agentId, newValue);
+    const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+    const request = new XMLHttpRequest();
+    request.open('POST', 'https://api.tookanapp.com/v2/assign_fleet_to_related_tasks');
+    
+    request.setRequestHeader('Content-Type', 'application/json');
+    
+   
+    const body =  {
+        'api_key':TOOKAN_API_KEY,
+        'pickup_delivery_relationship':newValue.pickup_delivery_relationship,
+        'team_id':newValue.team_id,
+        'fleet_id':(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.fleet_id,
+        'notify':newValue.notify,
+        'geofence':newValue.geofence,
+        'job_status':newValue.job_status
+    };
+    
+    request.send(JSON.stringify(body));
+}
+export async function ReAssignTookanAgentTask(snapshot, context) {
+    
+    const agentId = context.params.agentId;
+    const newValue = snapshot.after.data();
+    console.log('Triggering Assign Tookan agent Task for agent Id', agentId, newValue);
+    const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+    const request = new XMLHttpRequest();
+        request.open('POST', 'https://api.tookanapp.com/v2/reassign_open_tasks');
+
+        request.setRequestHeader('Content-Type', 'application/json');
+        const body = {
+        'api_key': TOOKAN_API_KEY,
+        'user_id': newValue.user_id,
+        'team_id': newValue.team_id,
+        'fleet_id':(await firestoreInstance.collection(AGENTS_STATUS).doc(agentId).get())?.data()?.fleet_id,
+        'job_ids':newValue.job_ids
+        };
+
+        request.send(JSON.stringify(body));
+}
+export async function GetMonthlyAgentSchedule(snapshot, context) {
+    
+    const agentId = context.params.agentId;
+    const newValue = snapshot.after.data();
+    console.log('Triggering Assign Tookan agent Task for agent Id', agentId, newValue);
+    const request = new XMLHttpRequest();
+
+     request.open('POST', 'https://api.tookanapp.com/v2/get_fleets_monthly_availability');
+
+     request.setRequestHeader('Content-Type', 'application/json');
+
+
+
+    const body = {
+    'api_key': TOOKAN_API_KEY,
+    'fleet_id': newValue.fleet_id,
+    'start_date':newValue.start_date,
+    'end_date': newValue.end_date
+    };
+
+    request.send(JSON.stringify(body));
 }
 
 export async function AddNewCustomer(snapshot, context) {
@@ -1426,6 +1560,9 @@ export async function TookanWebHook(snapshot, context) {
     
 
     console.log('Triggering create Tookan WebHook for ', merchantId, newValue);
+    console.log('Triggering delete merchant for merchant Id', merchantId, newValue);
+    const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+    //const XMLHttpRequest = require('xhr2');
     const request = new XMLHttpRequest();
 
     request.open('POST', 'https://api.tookanapp.com/v2/set_tookan_shared_secret_key');

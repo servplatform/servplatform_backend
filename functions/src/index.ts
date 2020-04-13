@@ -156,12 +156,40 @@ export const onGetAgentsSchedule = functions.https.onCall((data,context) => {
         console.log('onGetAgentsScheduleTriggered',)
         return tookanFunctions.GetTookanAgentSchedule(data,context);
     }); 
-    
+export const onGetAgentsActivityTimeline = functions.https.onCall((data,context) => {
+        console.log('onGetAgentsActivityTimelineTriggered',)
+        return tookanFunctions.GetTookanActivityTimeline(data,context);
+    }); 
+export const onGetAgentsRatingsAndReviews = functions.https.onCall((data,context) => {
+        console.log('onGetAgentsRatingsAndReviewsTriggered',)
+        return tookanFunctions.GetTookanAgentRating(data,context);
+    }); 
+export const onGetAgentsNearCustomer = functions.https.onCall((data,context) => {
+        console.log('onGetAgentsNearCustomerTriggered',)
+        return tookanFunctions.GetTookanAgentNearCustomer(data,context);
+    }); 
+export const onGetMonthlyAgentsSchedule = functions.https.onCall((data,context) => {
+        console.log('onGetMonthlyAgentsScheduleTriggered',)
+        return tookanFunctions.GetMonthlyAgentSchedule(data,context);
+    }); 
+
 export const onAssignAgentsTask = functions.firestore
     .document('agents/{agentId}')
     .onUpdate((snapshot,context) => {
         console.log('onAssignAgentsTaskTriggered',)
         return tookanFunctions.AssignTookanAgentTask(snapshot,context);
+    });  
+ export const onAssignAgentsRelatedTask = functions.firestore
+    .document('agents/{agentId}')
+    .onUpdate((snapshot,context) => {
+        console.log('onAssignAgentsRelatedTaskTriggered',)
+        return tookanFunctions.AssignTookanAgentRelatedTask(snapshot,context);
+    });  
+export const onReassignAgentsMultipleTask = functions.firestore
+    .document('agents/{agentId}')
+    .onUpdate((snapshot,context) => {
+        console.log('onReassignAgentsMultipleTaskTriggered',)
+        return tookanFunctions.ReAssignTookanAgentTask(snapshot,context);
     });  
 
 export const onAddCustomer = functions.firestore
