@@ -76,11 +76,9 @@ export const onTaskStatistics = functions.firestore
         return tookanFunctions.GettookantaskStatistics(snapshot,context);
     }); 
 
-export const onGetAllAgents = functions.firestore
-    .document('agents/{agentId}')
-    .onCreate((snapshot,context) => {
+export const onGetAllAgents = functions.https.onCall((data,context)=> {
         console.log('onGetAllAgentsTriggered',)
-        return tookanFunctions.getAllTookanAgents(snapshot,context);
+        return tookanFunctions.getAllTookanAgents(data,context);
     });    
 export const onAddAgents = functions.firestore
     .document('agents/{agentId}')
@@ -103,7 +101,7 @@ export const onEditAgents = functions.firestore
     
 export const onBlockUnblockAgents = functions.firestore
     .document('agents/{agentId}')
-    .onCreate((snapshot,context) => {
+    .onUpdate((snapshot,context) => {
         console.log('onBlockUnblockAgentsTriggered',)
         return tookanFunctions.BlockorUnblockTookanAgents(snapshot,context);
     }); 
@@ -127,30 +125,24 @@ export const onViewAgentsProfile = functions.firestore
 
 export const onUpdateAgentsTag = functions.firestore
     .document('agents/{agentId}')
-    .onCreate((snapshot,context) => {
+    .onUpdate((snapshot,context) => {
         console.log('onUpdateAgentsTagTriggered',)
         return tookanFunctions.UpdateTookanAgentTags(snapshot,context);
     });  
     
-export const onGetAgentsTag = functions.firestore
-    .document('agents/{agentId}')
-    .onCreate((snapshot,context) => {
+export const onGetAgentsTag = functions.https.onCall((data,context)=> {
         console.log('onGetAgentsTagTriggered',)
-        return tookanFunctions.GetTookanAgentTags(snapshot,context);
+        return tookanFunctions.GetTookanAgentTags(data,context);
     }); 
     
-export const onGetAgentsLogs = functions.firestore
-    .document('agents/{agentId}')
-    .onCreate((snapshot,context) => {
+export const onGetAgentsLogs = functions.https.onCall((data,context)=> {
         console.log('onGetAgentsLogsTriggered',)
-        return tookanFunctions.GetTookanAgentLogs(snapshot,context);
+        return tookanFunctions.GetTookanAgentLogs(data,context);
     }); 
     
-export const onGetAgentsLocation = functions.firestore
-    .document('agents/{agentId}')
-    .onCreate((snapshot,context) => {
+export const onGetAgentsLocation = functions.https.onCall((data,context)=> {
         console.log('onGetAgentsLocationTriggered',)
-        return tookanFunctions.GetTookanAgentLocation(snapshot,context);
+        return tookanFunctions.GetTookanAgentLocation(data,context);
     });  
 
 export const onSendAgentsNotification = functions.firestore
@@ -160,18 +152,44 @@ export const onSendAgentsNotification = functions.firestore
         return tookanFunctions.SendAgentNotification(snapshot,context);
     });    
 
-export const onGetAgentsSchedule = functions.firestore
-    .document('agents/{agentId}')
-    .onCreate((snapshot,context) => {
+export const onGetAgentsSchedule = functions.https.onCall((data,context) => {
         console.log('onGetAgentsScheduleTriggered',)
-        return tookanFunctions.GetTookanAgentSchedule(snapshot,context);
+        return tookanFunctions.GetTookanAgentSchedule(data,context);
     }); 
-    
+export const onGetAgentsActivityTimeline = functions.https.onCall((data,context) => {
+        console.log('onGetAgentsActivityTimelineTriggered',)
+        return tookanFunctions.GetTookanActivityTimeline(data,context);
+    }); 
+export const onGetAgentsRatingsAndReviews = functions.https.onCall((data,context) => {
+        console.log('onGetAgentsRatingsAndReviewsTriggered',)
+        return tookanFunctions.GetTookanAgentRating(data,context);
+    }); 
+export const onGetAgentsNearCustomer = functions.https.onCall((data,context) => {
+        console.log('onGetAgentsNearCustomerTriggered',)
+        return tookanFunctions.GetTookanAgentNearCustomer(data,context);
+    }); 
+export const onGetMonthlyAgentsSchedule = functions.https.onCall((data,context) => {
+        console.log('onGetMonthlyAgentsScheduleTriggered',)
+        return tookanFunctions.GetMonthlyAgentSchedule(data,context);
+    }); 
+
 export const onAssignAgentsTask = functions.firestore
     .document('agents/{agentId}')
-    .onCreate((snapshot,context) => {
+    .onUpdate((snapshot,context) => {
         console.log('onAssignAgentsTaskTriggered',)
         return tookanFunctions.AssignTookanAgentTask(snapshot,context);
+    });  
+ export const onAssignAgentsRelatedTask = functions.firestore
+    .document('agents/{agentId}')
+    .onUpdate((snapshot,context) => {
+        console.log('onAssignAgentsRelatedTaskTriggered',)
+        return tookanFunctions.AssignTookanAgentRelatedTask(snapshot,context);
+    });  
+export const onReassignAgentsMultipleTask = functions.firestore
+    .document('agents/{agentId}')
+    .onUpdate((snapshot,context) => {
+        console.log('onReassignAgentsMultipleTaskTriggered',)
+        return tookanFunctions.ReAssignTookanAgentTask(snapshot,context);
     });  
 
 export const onAddCustomer = functions.firestore
@@ -186,11 +204,12 @@ export const onAddCustomer = functions.firestore
 
 export const onEditCustomer = functions.firestore
     .document('users/{customerId}')
-    .onUpdate((snapshot,context) => {
+    .onUpdate((change,context) => {
         console.log('onEditCustomerTriggered',)
-        return tookanFunctions.EditCustomer(snapshot,context).then(res=>{  
-            console.log('onDeleteRecombeePropertyTriggered')
-            return recombeeFunctions.deleteRecombeeUserProperty(snapshot,context)
+        return tookanFunctions.EditCustomer(change,context).then(res=>{  
+            console.log('onUpdateRecombeeDataTriggered')
+            //return recombeeFunctions.deleteRecombeeUserProperty(snapshot,context)
+            return recombeeFunctions.updateRecombeeUserData(change,context)
      });
     });  
 
@@ -224,6 +243,72 @@ export const onDeleteCustomer = functions.firestore
               return recombeeFunctions.deleteRecombeeUser(snapshot,context)
                })
     });
+export const onCreateMerchant = functions.firestore
+    .document('providers/{providerId}')
+    .onCreate((snapshot,context) => {
+        console.log('onCreateMerchantTriggered',)
+        return tookanFunctions.CreateNewMerchant(snapshot,context);
+    });
+ 
+ export const onEditMerchant = functions.firestore
+    .document('providers/{providerId}')
+    .onUpdate((snapshot,context) => {
+        console.log('onEditMerchantTriggered',)
+        return tookanFunctions.EditTookanMerchant(snapshot,context);
+    });    
+ export const onViewMerchantsProfile = functions.firestore
+    .document('providers/{providerId}')
+    .onCreate((snapshot,context) => {
+        console.log('onViewMerchantsProfileTriggered',)
+        return tookanFunctions.ViewTookanMerchant(snapshot,context);
+    }); 
+ export const onGetMerchantDetails = functions.https.onCall((data,context)=> {
+        console.log('onViewMerchantsProfileTriggered',)
+        return tookanFunctions.GetMerchantDetails(data,context);
+    }); 
+export const onGetMerchantTeams = functions.https.onCall((data,context)=> {
+        console.log('onGetMerchantTeamTriggered',)
+        return tookanFunctions.GetMerchantTeam(data,context);
+    }); 
+export const onGetMerchantReports = functions.https.onCall((data,context)=> {
+        console.log('onViewMerchantsProfileTriggered',)
+        return tookanFunctions.GetMerchantReports(data,context);
+    }); 
+export const onBlockUnblockMerchant = functions.firestore
+    .document('providers/{providerId}')
+    .onUpdate((snapshot,context) => {
+        console.log('onBlockUnblockMerchantTriggered',)
+        return tookanFunctions.BlockUnblockMerchant(snapshot,context);
+    }); 
+ export const AvailableMerchantAgents = functions.firestore
+    .document('providers/{providerId}')
+    .onCreate((snapshot,context) => {
+        console.log('onViewMerchantsProfileTriggered',)
+        return tookanFunctions.AvailableMerchantAgents(snapshot,context);
+    }); 
+ export const onAssignMerchantAgentsTask = functions.firestore
+    .document('providers/{providerId}')
+    .onUpdate((snapshot,context) => {
+        console.log('onViewMerchantsProfileTriggered',)
+        return tookanFunctions.AssignMerchantAgentsTask(snapshot,context);
+    });
+export const onAssignMerchantToTask = functions.firestore
+    .document('providers/{providerId}')
+    .onUpdate((snapshot,context) => {
+        console.log('ononAssignMerchantToTaskTriggered',)
+        return tookanFunctions.AssignMerchantToTask(snapshot,context);
+    });
+ export const onDeleteMerchant = functions.firestore
+    .document('providers/{providerId}')
+    .onDelete((snapshot,context) => {
+        console.log('onTaskDeleteTriggered',)
+        return tookanFunctions.DeleteTookanMerchant(snapshot,context);
+    }); 
+ export const onCreateTookanWebhook=functions.https.onCall((data,context)=>{
+    console.log('onCreateTookanWebhookeTriggered',)
+    return tookanFunctions.TookanWebHook(data,context);
+
+ });
  export const onCreateService=functions.firestore
         .document('services/{serviceId}')
         .onCreate((snapshot,context)=>{
@@ -246,10 +331,11 @@ export const onDeleteCustomer = functions.firestore
         .document('services/{serviceId}').onUpdate((change, context) => {
             console.log('onUpdateServiceTriggered',)
             return algoliaFunctions.updateAlgoliaService(change,context).then(res=>{  
-            console.log('onDeleteRecombeePropertyTriggered')
-            return recombeeFunctions.deleteRecombeeProperty(change,context)
+            console.log('onUpdateRecombeePropertyTriggered',)
+            return recombeeFunctions.updateRecombeeData(change,context)
+            //return recombeeFunctions.deleteRecombeeProperty(change,context)
                })
-             });
+            });
            
   export const onCreateJob=functions.firestore
            .document('jobs/{jobId}')
@@ -263,8 +349,8 @@ export const onDeleteCustomer = functions.firestore
               console.log('onDeleteJobTriggered',) 
               return algoliaFunctions.deleteAlgoliaJob(snapshot,context)
               });
-       
-   export const onUpdateJob = functions.firestore
+             
+export const onUpdateJob = functions.firestore
            .document('jobs/{jobId}').onUpdate((change, context) => {
             console.log('onUpdateJobTriggered',)
             return algoliaFunctions.updateAlgoliaJob(change,context)
@@ -317,19 +403,150 @@ export const onDeleteCustomer = functions.firestore
                              console.log('onDeletePurchaseRecombee triggered')
                             return recombeeFunctions.DeletePurchaseview(snapshot,context) 
                                      
-                               }); 
-                               
-    
-   
-   
-   
-   
-   
-   
-   
-   
+                               });
+                                           
+     export const onRecommendItemsToUser=functions.https.onCall((data,context)=>{
+                            console.log('RecommendItemsToUser triggered')
+                                return recombeeFunctions.RecommendItemsToUser(data,context).then(res=>{
+                                console.log(res)
+                                const location=data.location
+                                return{
+                                    body:data.text,
+                                    location:location,
+                                    from:context.auth?.uid
+                                }
+                                })
+                                 }); 
+    export const RecommendUsersToUser=functions.https.onCall((data,context)=>{
+                            console.log('RecommendUsersToUserTriggered')
+                            return recombeeFunctions.RecommendUsersToUser(data,context).then(res=>{
+                                console.log(res);
 
+                                    })
+                                });
+    export const RecommendItemsToItem=functions.https.onCall((data,context)=>{
+                            console.log('RecommendItemsToItemTriggered')
+                            return recombeeFunctions.RecommendItemsToItem(data,context).then(res=>{
+                                console.log(res);
+
+                                    })
+                                });
+    export const RecommendUsersToItem=functions.https.onCall((data,context)=>{
+                            console.log('RecommendUsersToItemTriggered')
+                            return recombeeFunctions.RecommendUsersToItem(data,context).then(res=>{
+                                console.log(res);
+                            })
+                                });
+    export const onCreateTest=functions.firestore
+    .document('test/{testId}')
+    .onCreate((snapshot,context)=>{
+      console.log('onDeletePurchaseRecombee triggered')
+     return recombeeFunctions.createTestReco(snapshot,context) 
+              
+        });
+    export const onRequestRecieved = functions.https.onRequest(async (req,res) => {
+        return tookanFunctions.UpdateJobStatus(req,res);
+     })
+     export const onAgentStarted = functions.https.onRequest((req,res) => {
+        return tookanFunctions.UpdateJobStatus(req,res);
+    })
+    export const onAgentArrived = functions.https.onRequest((req,res) => {
+        return tookanFunctions.UpdateJobStatus(req,res);
+    })
+    export const onSuccessful = functions.https.onRequest((req,res) => {
+        return tookanFunctions.UpdateJobStatus(req,res);
+    })
+    export const onFailed = functions.https.onRequest((req,res) => {
+        return tookanFunctions.UpdateJobStatus(req,res);
+    })
+    export const onAutoAllocationStarted = functions.https.onRequest((req,res) => {
+        return tookanFunctions.UpdateJobStatus(req,res);
+    })
+    export const onAutoAllocationFailed = functions.https.onRequest((req,res) => {
+        return tookanFunctions.UpdateJobStatus(req,res);
+    })
+  
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+        /*
+        export const onRequestRecieved = functions.https.onRequest(async (req,res) => {
+            //console.log(req.body)
+            // console.log(req.body.fleet_id)
+            const taskref = admin.firestore().collection('tasks_status');
+           let query = taskref.where('job_id', '==',82506622 ).get()
+            .then(snapshot => {
+            if (snapshot.empty) {
+            console.log('No matching documents.');
+             return;
+             }  
     
-   
-    
-   
+        snapshot.forEach(doc => {
+          console.log(doc.id, '=>', doc.data());
+        });
+        console.log(query)
+    })
+    .catch(err => {
+      console.log('Error getting documents', err);
+    });
+         admin.firestore().collection('tasks_status').doc('ak52').update({
+                job_status:req.body
+               // req.body
+            }).then(snapshot=>{
+                res.redirect(303,'https://console.firebase.google.com/u/0/project/servplatform-d4668/database/firestore/data~2Fhooks~2Faaaaa');
+            }).catch(err => {
+             console.log("Getting Available merchant agents failed: " + err)
+         });
+         })
+
+
+
+
+          export const onRequestRecieved = functions.https.onRequest(async (req,res) => {
+          const taskref = firestoreInstance.collection('tasks_status');
+          taskref.where('job_id', '==',req.body.job_id).get()
+            .then(snapshot => {
+            if (snapshot.empty) {
+            console.log('Error.');
+             return;
+             }  
+        snapshot.forEach(doc => {
+          console.log(doc.id, '=>', doc.data());
+          taskref.doc(doc.id).update({
+            job_status:req.body
+        }).catch(err => {
+         console.log("Getting onRequests failed: " + err)
+     });
+        });
+       
+    }).catch(err => {
+        console.log("Getting onRequests failed: " + err)
+    });
+  })
+
+
+
+
+
+ 
+
+        
+        */
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+
+     
+ 
