@@ -1,5 +1,5 @@
 export let MAX_BATCH_SIZE = 500;
-export let TOOKAN_API_KEY = '51626687f64b58055e5868641515254314e0c1ff2bd97837551c04';
+export let TOOKAN_API_KEY = '51676082f9460a424c156a611710254314e2c5fd2ddc723a581f09';
 export let PRIV_USER_DATA = 'PrivateUserData';
 export let PUBLIC_USER_DATA = 'PublicUserData';
 export let ORDERS = 'orders';
@@ -20,9 +20,5 @@ export let AGENTS = 'agents';
 export let USERS = 'users';
 export let PROVIDERS = 'providers';
 
-export let AZURE_APIM_KEY = '7482fd48c8654bbc93685f7f04015185';
-export let ENDPOINT = 'https://centralindia.api.cognitive.microsoft.com/contentmoderator/review/v1.0';
-
-
-// '54e4c6f1784347e78fe58f4be81e9626';
-// 'https://tushantcontentmoderation.cognitiveservices.azure.com/';
+export let AZURE_KEY = "919a1c36b6a24e4585f53b4c0bd64752";
+export let AZURE_ENDPOINT = "https://tushant.cognitiveservices.azure.com/";
