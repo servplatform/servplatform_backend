@@ -38,47 +38,56 @@ export const onTaskDelete = functions.firestore
         return tookanFunctions.deleteTookanTask(snapshot,context);
     }); 
 
-// export const onTaskStatus = functions.firestore
-//     .document('tasks/{taskId}')
-//     .onUpdate((snapshot,context) => {
-//         console.log('onTaskStatusTriggered',)
-//         return tookanFunctions.updateTookanTaskstatus(snapshot,context);
-//     }); 
+export const onTaskStatus = functions.https.onCall((data,context)=> {
+        console.log('onTaskStatusTriggered',)
+        return tookanFunctions.updateTookanTaskstatus(data,context);
+    }); 
 
-// export const onStartTask = functions.firestore
-//     .document('tasks/{taskId}')
-//     .onUpdate((snapshot,context) => {
-//         console.log('onStartTaskTriggered',)
-//         return tookanFunctions.Starttookantask(snapshot,context);
-//     }); 
+export const onStartTask = functions.https.onCall((data,context)=> {
+        console.log('onStartTaskTriggered',)
+        return tookanFunctions.Starttookantask(data,context);
+    }); 
 
-// export const onCancelTask = functions.firestore
-//     .document('tasks/{taskId}')
-//     .onDelete((snapshot,context) => {
-//         console.log('onCancelTaskTriggered',)
-//         return tookanFunctions.Canceltookantask(snapshot,context);
-//     }); 
+export const onCancelTask = functions.https.onCall((data,context)=> {
+        console.log('onCancelTaskTriggered',)
+        return tookanFunctions.Canceltookantask(data,context);
+    }); 
 
-// export const onAssignTask = functions.firestore
-//     .document('tasks/{taskId}')
-//     .onUpdate((snapshot,context) => {
-//         console.log('onAssignTaskTriggered',)
-//         return tookanFunctions.Assigntookantask(snapshot,context);
-//     }); 
+export const onAssignTask = functions.https.onCall((data,context) => {
+        console.log('onAssignTaskTriggered',)
+        return tookanFunctions.Assigntookantask(data,context);
+    }); 
 
-// export const onAutoAssignTask = functions.firestore
-//     .document('tasks/{taskId}')
-//     .onUpdate((snapshot,context) => {
-//         console.log('onAutoAssignTaskTriggered',)
-//         return tookanFunctions.AutoAssigntookantask(snapshot,context);
-//     }); 
+export const onAutoAssignTask = functions.https.onCall((data,context)=> {
+        console.log('onAutoAssignTaskTriggered',)
+        return tookanFunctions.AutoAssigntookantask(data,context);
+    }); 
 
-// export const onTaskStatistics = functions.firestore
-//     .document('tasks/{taskId}')
-//     .onCreate((snapshot,context) => {
-//         console.log('onTaskStatisticsTriggered',)
-//         return tookanFunctions.GettookantaskStatistics(snapshot,context);
-//     }); 
+export const onTaskStatistics = functions.https.onCall((data,context) => {
+        console.log('onTaskStatisticsTriggered',)
+        return tookanFunctions.GettookantaskStatistics(data,context);
+    }); 
+
+
+    export const onViewAllTasks = functions.https.onCall((data,context) => {
+        console.log('onViewAllTasksTriggered',)
+        return tookanFunctions.Getalltookantask(data,context);
+    });
+    
+    export const onGetTaskByOrderId = functions.https.onCall((data,context) => {
+        console.log('onGetTaskByOrderIdTriggered',)
+        return tookanFunctions.GetTaskByOrderId(data,context);
+    });
+
+    export const onGetRouteDetails = functions.https.onCall((data,context) => {
+        console.log('onGetRouteDetailsTriggered',)
+        return tookanFunctions.GetRouteDetails(data,context);
+    });
+
+    export const onGetFareEstimate = functions.https.onCall((data,context) => {
+        console.log('onGetFareEstimateTriggered',)
+        return tookanFunctions.GetFareEstimate(data,context);
+    });
 
 export const onGetAllAgents = functions.firestore
     .document('agents/{agentId}')
@@ -171,44 +180,94 @@ export const onAssignAgentsTask = functions.firestore
         return tookanFunctions.AssignTookanAgentTask(snapshot,context);
     });  
 
-export const onAddCustomer = functions.firestore
-    .document('users/{customerId}')
-    .onCreate((snapshot,context) => {
-        console.log('onAddCustomerTriggered',)
-        return tookanFunctions.AddNewCustomer(snapshot,context);
-    });  
+// export const onAddCustomer = functions.firestore
+//     .document('users/{customerId}')
+//     .onCreate((snapshot,context) => {
+//         console.log('onAddCustomerTriggered',)
+//         return tookanFunctions.AddNewCustomer(snapshot,context);
+//     });  
 
 export const onEditCustomer = functions.firestore
     .document('users/{customerId}')
-    .onCreate((snapshot,context) => {
+    .onUpdate((change,context) => {
         console.log('onEditCustomerTriggered',)
-        return tookanFunctions.EditCustomer(snapshot,context);
+        return tookanFunctions.EditCustomer(change,context);
     });  
 
 export const onFindCustomerWithPhone = functions.firestore
-    .document('users/{customerId}')
-    .onCreate((snapshot,context) => {
+        .document('users/{customerId}')
+        .onCreate((snapshot,context) => {
         console.log('onFindCustomerWithPhoneTriggered',)
         return tookanFunctions.FindCustomerWithPhone(snapshot,context);
     });  
 
-export const onFindCustomerWithName = functions.firestore
-    .document('users/{customerId}')
-    .onCreate((snapshot,context) => {
+export const onFindCustomerWithName = functions.https.onCall((data,context) => {
         console.log('onFindCustomerWithNameTriggered',)
-        return tookanFunctions.FindCustomerWithName(snapshot,context);
+        return tookanFunctions.FindCustomerWithName(data,context);
     });  
 
-export const onViewCustomerProfile = functions.firestore
-    .document('users/{customerId}')
-    .onCreate((snapshot,context) => {
+export const onViewCustomerProfile = functions.https.onCall((data,context) => {
         console.log('onViewCustomerProfileTriggered',)
-        return tookanFunctions.ViewTookanCustomerProfile(snapshot,context);
+        return tookanFunctions.ViewTookanCustomerProfile(data,context);
     });  
 
 export const onDeleteCustomer = functions.firestore
     .document('users/{customerId}')
-    .onCreate((snapshot,context) => {
+    .onDelete((snapshot,context) => {
         console.log('onDeleteCustomerTriggered',)
         return tookanFunctions.DeleteTookanCustomer(snapshot,context);
     }); 
+
+    export const onCreateTeam = functions.firestore
+    .document('teams/{teamId}')
+    .onCreate((snapshot,context) => {
+        console.log('onCreateTeamTriggered',)
+        return tookanFunctions.CreateTookanTeam(snapshot,context);
+    }); 
+
+    export const onTeamEdit = functions.firestore
+    .document('teams/{teamId}')
+    .onUpdate((snapshot,context) => {
+        console.log('onUpdateTeamTriggered',)
+        return tookanFunctions.EditTookanTeam(snapshot,context);
+    }); 
+
+    export const onDeleteTeam = functions.firestore
+    .document('teams/{teamId}')
+    .onDelete((snapshot,context) => {
+        console.log('onDeleteTeamTriggered',)
+        return tookanFunctions.DeleteTookanTeam(snapshot,context);
+    });
+
+    export const onGetTeamDetails = functions.https.onCall((data,context) => {
+        console.log('onGetTeamDetailsTriggered',)
+        return tookanFunctions.GetTookanTeamDetails(data,context);
+    }); 
+    
+    export const onGetJonAndAgentDetails = functions.https.onCall((data,context) => {
+        console.log('onGetJonAndAgentDetailsTriggered',)
+        return tookanFunctions.GetJobAndAgentDetails(data,context);
+    }); 
+
+    export const onCreateMission = functions.firestore
+    .document('mission/{missionId}')
+    .onCreate((snapshot,context) => {
+        console.log('onCreateMissionTriggered',)
+        return tookanFunctions.CreateTookanMission(snapshot,context);
+    }); 
+
+    export const onGetMissionList = functions.https.onCall((data,context) => {
+        console.log('onGetMissionListTriggered',)
+        return tookanFunctions.GetMissionList(data,context);
+    }); 
+
+    export const onDeleteMission = functions.firestore
+    .document('mission/{missionId}')
+    .onCreate((snapshot,context) => {
+        console.log('onDeleteMissionTriggered',)
+        return tookanFunctions.DeleteTookanMission(snapshot,context);
+    }); 
+
+
+
+    

@@ -1,5 +1,5 @@
 export let MAX_BATCH_SIZE = 500;
-export let TOOKAN_API_KEY = '51616081f24b5b4157477b7e5253254314e0c3f82dde7c3e5a1a01';
+export let TOOKAN_API_KEY = '51676082f94642071c4f78724859254314e2c1fb2ddb7c3b5a1e06';
 export let PRIV_USER_DATA = 'PrivateUserData';
 export let PUBLIC_USER_DATA = 'PublicUserData';
 export let ORDERS = 'orders';
@@ -19,4 +19,9 @@ export let COMMENT_EVENT = 'comment';
 export let LIKE_EVENT = 'like';
 export let AGENTS = 'agents';
 export let USERS = 'users';
+export let USERS_STATUS = 'users_status';
+export let TEAMS = 'teams';
+export let TEAMS_STATUS = 'teams_status';
+export let MISSION = 'mission';
+export let MISSION_STATUS = 'mission_status';
 export let PROVIDERS = 'providers';

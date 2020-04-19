@@ -1,5 +1,5 @@
 import {
-    TOOKAN_API_KEY,TASKS, AGENTS, USERS, PROVIDERS, TASKS_STATUS
+    TOOKAN_API_KEY,TASKS, AGENTS, USERS, PROVIDERS, TASKS_STATUS, USERS_STATUS, TEAMS_STATUS, MISSION_STATUS
 } from "../constants";
 import {firestoreInstance} from "../index";
 import * as Tookan from "tookan-api";
@@ -38,7 +38,6 @@ export async function createTookanTask(snapshot, context) {
         notify:newValue.notify,
         tags:newValue.tags,
         geofence:newValue.geofence
-        //job_pickup_phone:newValue.job_pickup_phone
     };
     //Create task in tookan
     return client.createTask(options).then(res => {
@@ -62,35 +61,11 @@ async function updateTaskOnTaskCreate (res,taskId): Promise<string> {
 export async function edittookantask(change, context) {
     
     const taskId = context.params.taskId;
-
-    //const oldValue = change.before.data();
     const newValue = change.after.data();
-    // const jid=firestoreInstance.collection(TASKS_STATUS).doc(taskId).get().then(doc =>{
-    //     if (!doc.exists) {
-    //         console.log('No such User document!');
-    //         throw new Error('No such User document!');
-    //       } else {
-    //         console.log('Document data:', doc.data());
-    //         return doc.data;
-    //       }
-    // });
-
     
-
-
-    
-
     console.log('Triggering Edit Tookan task for task id ', taskId, newValue);
     
     const options = {
-        // customer_address:newValue.customer_address,
-        // customer_name: newValue.customer_name,
-        // deliveryOrderId:newValue.deliveryOrderId,
-        // job_hash:newValue.job_hash,
-        // job_id:newValue.job_id,
-        // job_token:newValue.job_token,
-        // order_id:newValue.order_id,
-        // tracking_link:newValue.tracking_link
         
         api_key:TOOKAN_API_KEY,
         order_id:newValue.order_id,
@@ -127,20 +102,7 @@ export async function edittookantask(change, context) {
         console.log("Tookan Edit task failed: " + err)
     });
 }
-// function job(taskd:any): any{
-//     firestoreInstance.collection(TASKS_STATUS).doc(taskd).get().then(doc =>{
-//         if (!doc.exists) {
-//                     console.log('No such User document!');
-//                     throw new Error('No such User document!');
-//                   } else{
-//                     let j=doc?.data()?.job_id;
-//                   }
-         
-//     });
-//     return j
-    
-    
-// }
+
 
 async function updateTaskOnTaskEdit (res,taskId): Promise<string> {
     console.log("Tookan task edited with response successfully for taskId: ",taskId,"Response received from tookan: ",res);
@@ -192,7 +154,7 @@ export async function updateTookanTaskstatus(snapshot, context) {
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        job_id: newValue.job_id,
+        job_id: (await firestoreInstance.collection(TASKS_STATUS).doc(taskId).get())?.data()?.job_id,
         job_status: newValue.job_status
       };
     //Update task status in tookan
@@ -224,7 +186,7 @@ export async function Starttookantask(snapshot, context) {
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        job_id: newValue.job_id,
+        job_id: (await firestoreInstance.collection(TASKS_STATUS).doc(taskId).get())?.data()?.job_id,
         job_status: newValue.job_status
       };
     //Start task in tookan
@@ -256,7 +218,7 @@ export async function Canceltookantask(snapshot, context) {
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        job_id: newValue.job_id,
+        job_id: (await firestoreInstance.collection(TASKS_STATUS).doc(taskId).get())?.data()?.job_id,
         job_status: newValue.job_status
       };
     //Cancel task in tookan
@@ -288,7 +250,7 @@ export async function Assigntookantask(snapshot, context) {
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        job_id: newValue.job_id,
+        job_id: (await firestoreInstance.collection(TASKS_STATUS).doc(taskId).get())?.data()?.job_id,
         fleet_id: newValue.fleet_id,
         team_id: newValue.team_id,
         job_status: newValue.job_status
@@ -322,7 +284,7 @@ export async function AutoAssigntookantask(snapshot, context) {
 
     const options = {
         api_key: TOOKAN_API_KEY,
-        job_id: newValue.job_id
+        job_id: (await firestoreInstance.collection(TASKS_STATUS).doc(taskId).get())?.data()?.job_id
       };
     //Auto Assign task in tookan
     console.log('Auto Assigning tookan task for options: ', options);
@@ -373,7 +335,226 @@ async function tookantaskstatistics(res,taskId): Promise<string> {
     taskRef.set(res.data).then(() => console.log("Task Statistics calculated based on tookan response for taskId:", taskId)).catch(err => console.log("Task Statistics Calculated based on task id failed for: " + err));
 	return taskId
 }
+//view all tasks
 
+export async function Getalltookantask(snapshot, context) {
+    
+    const taskId = context.params.taskId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering Get all Tookan task for task id ', taskId, newValue);
+
+    const options = {
+        api_key: TOOKAN_API_KEY,
+        job_status: newValue.job_status,
+        job_type:newValue.job_type,
+        start_date:newValue.start_date,
+        end_date:newValue.end_date,
+        custom_fields:newValue.custom_fields,
+        is_pagination:newValue.is_pagination,
+        requested_page:newValue.requested_page,
+        customer_id:newValue.customer_id,
+        fleet_id:newValue.fleet_id,
+        job_id:newValue.job_id,
+        order_id:newValue.job_id,
+        team_id:newValue.team_id
+      };
+    console.log('Getting Get all Tookan task for options: ', options);
+    return client.getAllTasks(options).then(res => {
+        return tookanalltask(res,taskId);   
+    })
+    .catch(err => {
+        console.log("Tookan all task getting  failed: " + err)
+    });
+}
+
+async function tookanalltask(res,taskId): Promise<string> {
+    console.log("Getting all Tookan Task successfully for taskId: ",taskId,"Response received from tookan: ",res);
+    console.log("Getting all Tookan Task based on response for taskId started",taskId);
+    console.log("all Tookan Task calculated for task_id ",taskId,"content: ",res.data);
+    const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
+    taskRef.set(res.data).then(() => console.log("all Tookan Task calculated based on tookan response for taskId:", taskId))
+    .catch(err => console.log("all Tookan Task Calculated based on task id failed for: " + err));
+	return taskId
+}
+
+//get task by order Id
+
+export async function GetTaskByOrderId(snapshot, context) {
+    
+    const taskId = context.params.taskId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering Get  Tookan task by order Id for task id ', taskId, newValue);
+
+    const options = {
+        api_key: TOOKAN_API_KEY,
+        order_ids:newValue.order_ids,
+        include_task_history:newValue.include_task_history
+      };
+    console.log('Getting Get  Tookan task by order Id for options: ', options);
+    return client.getTaskDetailsFromOrderId(options).then(res => {
+        return taskDetailsFromId(res,taskId);   
+    })
+    .catch(err => {
+        console.log("Tookan  task by order Id getting  failed: " + err)
+    });
+}
+
+async function taskDetailsFromId(res,taskId): Promise<string> {
+    console.log("Getting  Tookan Task by order Id successfully for taskId: ",taskId,"Response received from tookan: ",res);
+    console.log("Getting  Tookan Task by order Id based on response for taskId started",taskId);
+    console.log(" Tookan Task by order Id calculated for task_id ",taskId,"content: ",res.data);
+    const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
+    taskRef.set(res.data).then(() => console.log(" Tookan Task by order Id calculated based on tookan response for taskId:", taskId))
+    .catch(err => console.log(" Tookan Task by order Id Calculated based on task id failed for: " + err));
+	return taskId
+}
+//get route details
+
+export async function GetRouteDetails(snapshot, context) {
+    
+    const taskId = context.params.taskId;
+    const newValue = snapshot.data();
+
+
+     console.log('Triggering Get  Route details for task id ', taskId, newValue);
+
+
+     var request = new XMLHttpRequest();
+
+request.open('POST', 'https://api.tookanapp.com/v2/get_route_details_for_date');
+
+request.setRequestHeader('Content-Type', 'application/json');
+
+request.onreadystatechange = function () {
+  if (this.readyState === 4) {
+    console.log('Status:', this.status);
+    console.log('Headers:', this.getAllResponseHeaders());
+    console.log('Body:', this.responseText);
+  }
+};
+
+var body = {
+  'api_key': TOOKAN_API_KEY,
+  'date': '2019-05-21'
+};
+
+request.send(JSON.stringify(body));
+
+}
+
+
+// export async function GetRouteDetails(snapshot, context) {
+    
+//     const taskId = context.params.taskId;
+//     const newValue = snapshot.data();
+    
+
+//     console.log('Triggering Get  Route details for task id ', taskId, newValue);
+
+//     const options = {
+//         api_key: TOOKAN_API_KEY,
+//         date:newValue.date
+//       };
+//     console.log('Getting Get  Route details for options: ', options);
+//     return client.getRoute(options).then(res => {
+//         return routeDetails(res,taskId);   
+//     })
+//     .catch(err => {
+//         console.log("Tookan  Route details getting  failed: " + err)
+//     });
+// }
+
+// async function routeDetails(res,taskId): Promise<string> {
+//     console.log("Getting  Tookan Route details successfully for taskId: ",taskId,"Response received from tookan: ",res);
+//     console.log("Getting  Tookan Route details based on response for taskId started",taskId);
+//     console.log(" Tookan Route details calculated for task_id ",taskId,"content: ",res.data);
+//     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
+//     taskRef.set(res.data).then(() => console.log(" Tookan  Route details calculated based on tookan response for taskId:", taskId))
+//     .catch(err => console.log(" Tookan Route details Calculated based on task id failed for: " + err));
+// 	return taskId
+// }
+
+//get fare estimate
+export async function GetFareEstimate(snapshot, context) {
+    
+        const taskId = context.params.taskId;
+        const newValue = snapshot.data();
+        console.log('Triggering Get  Fare Estimate for task id ', taskId, newValue);
+
+        const request = new XMLHttpRequest();
+
+request.open('POST', 'https://api.tookanapp.com/v2/get_fare_estimate');
+
+request.setRequestHeader('Content-Type', 'application/json');
+
+request.onreadystatechange = function () {
+  if (this.readyState === 4) {
+    console.log('Status:', this.status);
+    console.log('Headers:', this.getAllResponseHeaders());
+    console.log('Body:', this.responseText);
+  }
+};
+
+const body = {
+  'template_name': 'Order_Details',
+  'pickup_longitude': '75.78459531068802',
+  'pickup_latitude': '30.878816612716466',
+  'api_key': 'YOUR_API_KEY',
+  'delivery_latitude': '30.911338899788063',
+  'delivery_longitude': '75.79901956021786',
+  'formula_type': 3,
+  'map_keys': {
+    'map_plan_type': 1,
+    'google_api_key': 'GOOGLE_API_KEY'
+  }
+};
+
+request.send(JSON.stringify(body));
+
+}
+
+// export async function GetFareEstimate(snapshot, context) {
+    
+//     const taskId = context.params.taskId;
+//     const newValue = snapshot.data();
+    
+
+//     console.log('Triggering Get  Fare Estimate for task id ', taskId, newValue);
+
+//     const options = {
+//         api_key: TOOKAN_API_KEY,
+//         template_name:newValue.template_name,
+//         pickup_latitude:newValue.pickup_latitude,
+//         pickup_longitude:newValue.pickup_longitude,
+//         delivery_latitude:newValue.delivery_latitude,
+//         delivery_longitude:newValue.delivery_longitude,
+//         formula_type:newValue.formula_type,
+//         map_keys:newValue.map_keys
+//       };
+//     console.log('Getting Get  Fare Estimate for options: ', options);
+//     return client.getFareEstimate(options).then(res => {
+//         return fareEstimate(res,taskId);   
+//     })
+//     .catch(err => {
+//         console.log("Tookan  Fare Estimate getting  failed: " + err)
+//     });
+// }
+
+// async function fareEstimate(res,taskId): Promise<string> {
+//     console.log("Getting  Fare Estimate successfully for taskId: ",taskId,"Response received from tookan: ",res);
+//     console.log("Getting  Fare Estimate based on response for taskId started",taskId);
+//     console.log(" Fare Estimate calculated for task_id ",taskId,"content: ",res.data);
+//     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
+//     taskRef.set(res.data).then(() => console.log(" Fare Estimate calculated based on tookan response for taskId:", taskId))
+//     .catch(err => console.log(" Fare Estimate Calculated based on task id failed for: " + err));
+// 	return taskId
+// }
+
+//get all tookan agent
 export async function getAllTookanAgents(snapshot, context) {
     
     const agentId = context.params.agentId;
@@ -837,8 +1018,8 @@ export async function AddNewCustomer(snapshot, context) {
     const options = {
         api_key: TOOKAN_API_KEY,
         user_type: 0,
-        name: newValue.full_name,
-        phone: newValue.phone_number,
+        name: newValue.name,
+        phone: newValue.phone,
         email: newValue.email,
         address: newValue.address,
         latitude: newValue.latitude,
@@ -859,15 +1040,15 @@ async function CustomerAdd(res,customerId): Promise<string> {
     console.log("Customer Added for customerId: ",customerId,"Response received from tookan: ",res);
     console.log("Adding customers based on response for customerId started",customerId);
     console.log("Customer added for customerid ",customerId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(USERS).doc(customerId);
+    const taskRef = firestoreInstance.collection(USERS_STATUS).doc(customerId);
     taskRef.set(res.data).then(() => console.log("Customer added based on customer Id:", customerId)).catch(err => console.log("Adding customer based on customer id failed for: " + err));
 	return customerId
 }
 
-export async function EditCustomer(snapshot, context) {
+export async function EditCustomer(change, context) {
     
     const customerId = context.params.customerId;
-    const newValue = snapshot.data();
+    const newValue = change.after.data();
     
 
     console.log('Triggering Edit Customer details for customer Id', customerId, newValue);
@@ -875,9 +1056,9 @@ export async function EditCustomer(snapshot, context) {
     const options = {
       api_key: TOOKAN_API_KEY,
       user_type: 0,
-      customer_id: newValue.user_id,
-      name: newValue.full_name,
-      phone: newValue.phone_number,
+      customer_id: (await firestoreInstance.collection(USERS_STATUS).doc(customerId).get())?.data()?.customer_id,
+      name: newValue.name,
+      phone: newValue.phone,
       email: newValue.email,
       address: newValue.address,
       latitude: newValue.latitude,
@@ -898,7 +1079,7 @@ async function CustomerEdit(res,customerId): Promise<string> {
     console.log("Customer Edited for customerId: ",customerId,"Response received from tookan: ",res);
     console.log("Editing customers based on response for customerId started",customerId);
     console.log("Customer edited for customerid ",customerId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(USERS).doc(customerId);
+    const taskRef = firestoreInstance.collection(USERS_STATUS).doc(customerId);
     taskRef.set(res.data).then(() => console.log("Customer edited based on customer Id:", customerId)).catch(err => console.log("Editing customer based on customer id failed for: " + err));
 	return customerId
 }
@@ -913,7 +1094,7 @@ export async function FindCustomerWithPhone(snapshot, context) {
 
     const options = {
       api_key: TOOKAN_API_KEY,
-      customer_phone: newValue.phone_number
+      customer_phone: newValue.customer_phone
     };
     
       //Getting customers with phone in tookan
@@ -930,8 +1111,11 @@ async function Customerwithphone(res,customerId): Promise<string> {
     console.log("Finding customers with phone for customerId: ",customerId,"Response received from tookan: ",res);
     console.log("Finding customers with phone based on response for customerId started",customerId);
     console.log("Finding customers with phone for customerid ",customerId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(USERS).doc(customerId);
-    taskRef.set(res.data).then(() => console.log("Finding customers with phone based on customer Id:", customerId)).catch(err => console.log("Finding customer with phone based on customer id failed for: " + err));
+    const taskRef = firestoreInstance.collection(USERS_STATUS).doc(customerId);
+    const resultData=res.data;
+    const currData=resultData.pop();
+    taskRef.set(currData).then(() => console.log("Finding customers with phone based on customer Id:", customerId))
+    .catch(err => console.log("Finding customer with phone based on customer id failed for: " + err));
 	return customerId
 }
 
@@ -945,7 +1129,7 @@ export async function FindCustomerWithName(snapshot, context) {
 
     const options = {
       api_key: TOOKAN_API_KEY,
-      customer_name: newValue.full_name
+      customer_name: newValue.customer_name
     };
     
       //Getting customers with name in tookan
@@ -963,7 +1147,9 @@ async function Customerwithname(res,customerId): Promise<string> {
     console.log("Finding customers with name based on response for customerId started",customerId);
     console.log("Finding customers with name ",customerId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(USERS).doc(customerId);
-    taskRef.set(res.data).then(() => console.log("Finding customers with name based on customer Id:", customerId)).catch(err => console.log("Finding customer with name based on customer id failed for: " + err));
+    const resultData=res.data;
+    const currData=resultData.pop();
+    taskRef.set(currData).then(() => console.log("Finding customers with name based on customer Id:", customerId)).catch(err => console.log("Finding customer with name based on customer id failed for: " + err));
 	return customerId
 }
 
@@ -977,7 +1163,7 @@ export async function ViewTookanCustomerProfile(snapshot, context) {
 
     const options = {
       api_key: TOOKAN_API_KEY,
-      customer_id: newValue.user_id
+      customer_id: (await firestoreInstance.collection(USERS_STATUS).doc(customerId).get())?.data()?.customer_id
     };
     
       //viewing customers profile in tookan
@@ -995,7 +1181,9 @@ async function Customerprofile(res,customerId): Promise<string> {
     console.log("Viewing customers profile based on response for customerId started",customerId);
     console.log("Viewing customers profile for customer Id ",customerId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(USERS).doc(customerId);
-    taskRef.set(res.data).then(() => console.log("Viewing customers profile for customer Id:", customerId)).catch(err => console.log("Viewing customer profile for customer id failed for: " + err));
+    const resultData=res.data;
+    const currData=resultData.pop();
+    taskRef.set(currData).then(() => console.log("Viewing customers profile for customer Id:", customerId)).catch(err => console.log("Viewing customer profile for customer id failed for: " + err));
 	return customerId
 }
 
@@ -1009,7 +1197,7 @@ export async function DeleteTookanCustomer(snapshot, context) {
 
     const options = {
       api_key: TOOKAN_API_KEY,
-      customer_id: newValue.user_id
+      customer_id: (await firestoreInstance.collection(USERS_STATUS).doc(customerId).get())?.data()?.customer_id
     };
     
       //Deleting customers in tookan
@@ -1026,7 +1214,7 @@ async function CustomerDelete(res,customerId): Promise<string> {
     console.log("Deleting customers for customer ID: ",customerId,"Response received from tookan: ",res);
     console.log("Deleting customers based on response for customerId started",customerId);
     console.log("Deleting customers for customer Id ",customerId,"content: ",res.data);
-    const taskRef = firestoreInstance.collection(USERS).doc(customerId);
+    const taskRef = firestoreInstance.collection(USERS_STATUS).doc(customerId);
     taskRef.set(res.data).then(() => console.log("Deleting customers for customer Id:", customerId)).catch(err => console.log("Deleting customer for customer id failed for: " + err));
 	return customerId
 }
@@ -1344,6 +1532,287 @@ async function MerchantTasktoAgents(res,merchantId): Promise<string> {
     console.log("Assigning tasks to merchant agents based on response for merchantId started",merchantId);
     console.log("Assigning tasks to merchant agents for merchant Id ",merchantId,"content: ",res.data);
     const taskRef = firestoreInstance.collection(PROVIDERS).doc(merchantId);
-    taskRef.set(res.data).then(() => console.log("Assigning tasks to merchant agents for merchant Id:", merchantId)).catch(err => console.log("Assigning tasks to merchant agents for merchant id failed for: " + err));
+    taskRef.set(res.data).then(() => console.log("Assigning tasks to merchant agents for merchant Id:", merchantId))
+    .catch(err => console.log("Assigning tasks to merchant agents for merchant id failed for: " + err));
 	return merchantId
 }
+
+//create tookan team
+export async function CreateTookanTeam(snapshot, context) {
+    
+    const teamId = context.params.teamId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering Create Tookan team for team id ', teamId, newValue);
+    
+    const options = {
+        api_key:TOOKAN_API_KEY,
+        team_name:newValue.team_name,
+        battery_usage:newValue.battery_usage,
+        tags:newValue.tags
+        
+    };
+    //Create task in tookan
+    return client.createTeam(options).then(res => {
+        console.log("Creating tookan team for options: ", options);
+        return updateTeamOnTeamCreate(res,teamId);   
+    })
+    .catch(err => {
+        console.log("Tookan Create team failed: " + err)
+    });
+}
+async function updateTeamOnTeamCreate (res,teamId): Promise<string> {
+    console.log("Tookan team created with response successfully for teamId: ",teamId,"Response received from tookan: ",res.data);
+    console.log("Update team based on response for teamId started",teamId);
+    console.log("Updated content for team_id ",teamId,"content: ",res.data);
+    const taskRef = firestoreInstance.collection(TEAMS_STATUS).doc(teamId);
+    taskRef.set(res.data).then(() => console.log("team updated based on tookan response for teamId:", teamId))
+    .catch(err => console.log("Update team based on team id failed for: " + err));
+	return teamId
+}
+
+//update team
+export async function EditTookanTeam(snapshot, context) {
+    
+    const teamId = context.params.teamId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering update Tookan team for team id ', teamId, newValue);
+    
+    const options = {
+        api_key:TOOKAN_API_KEY,
+        team_name:newValue.team_name,
+        battery_usage:newValue.battery_usage,
+        tags:newValue.tags,
+        team_id:(await firestoreInstance.collection(TASKS_STATUS).doc(teamId).get())?.data()?.team_id
+        
+    };
+    //Create task in tookan
+    return client.editTeam(options).then(res => {
+        console.log("Updating tookan team for options: ", options);
+        return updateTeamOnTeamEdit(res,teamId);   
+    })
+    .catch(err => {
+        console.log("Tookan edit team failed: " + err)
+    });
+}
+async function updateTeamOnTeamEdit (res,teamId): Promise<string> {
+    console.log("Tookan team edited with response successfully for teamId: ",teamId,"Response received from tookan: ",res.data);
+    console.log("Update team based on response for teamId started",teamId);
+    console.log("Updated content for team_id ",teamId,"content: ",res.data);
+    const taskRef = firestoreInstance.collection(TEAMS_STATUS).doc(teamId);
+    taskRef.set(res.data).then(() => console.log("team updated based on tookan response for teamId:", teamId))
+    .catch(err => console.log("Update team based on team id failed for: " + err));
+	return teamId
+}
+
+//Delete tookan team
+export async function DeleteTookanTeam(snapshot, context) {
+    
+    const teamId = context.params.teamId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering delete Tookan team for team id ', teamId, newValue);
+    
+    const options = {
+        api_key:TOOKAN_API_KEY,
+        team_id:(await firestoreInstance.collection(TASKS_STATUS).doc(teamId).get())?.data()?.team_id
+        
+    };
+    return client.deleteTeam(options).then(res => {
+        console.log("Deleting tookan team for options: ", options);
+        return updateTeamDeletion(res,teamId);   
+    })
+    .catch(err => {
+        console.log("Tookan delete team failed: " + err)
+    });
+}
+async function updateTeamDeletion (res,teamId): Promise<string> {
+    console.log("Tookan team deleted with response successfully for teamId: ",teamId,"Response received from tookan: ",res.data);
+    console.log("Delete team based on response for teamId started",teamId);
+    console.log("Deleted content for team_id ",teamId,"content: ",res.data);
+    const taskRef = firestoreInstance.collection(TEAMS_STATUS).doc(teamId);
+    taskRef.set(res.data).then(() => console.log("team deleted based on tookan response for teamId:", teamId))
+    .catch(err => console.log("Delete team based on team id failed for: " + err));
+	return teamId
+}
+
+export async function GetTookanTeamDetails(snapshot, context) {
+    
+    const teamId = context.params.teamId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering get team details for team id ', teamId, newValue);
+    
+    const options = {
+        api_key:TOOKAN_API_KEY      
+    };
+    //Create task in tookan
+    return client.getTeamDetails(options).then(res => {
+        console.log("Viewing tookan team Details for options: ", options);
+        return teamDetails(res,teamId);   
+    })
+    .catch(err => {
+        console.log("Viewing tookan team Details failed: " + err)
+    });
+}
+async function teamDetails(res,teamId): Promise<string> {
+    console.log("Viewing Tookan team details with response successfully for teamId: ",teamId,"Response received from tookan: ",res.data);
+    console.log("Viewing Tookan team details based on response for teamId started",teamId);
+    console.log("Viewing Tookan team details for team_id ",teamId,"content: ",res.data);
+    const taskRef = firestoreInstance.collection(TEAMS_STATUS).doc(teamId);
+    taskRef.set(res.data()).then(() => console.log("Viewing Tookan team details based on tookan response for teamId:", teamId))
+    .catch(err => console.log("Viewing Tookan team details on team id failed for: " + err));
+	return teamId
+}
+
+//get job and agent details
+export async function GetJobAndAgentDetails(snapshot, context) {
+    
+    const teamId = context.params.teamId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering get job and agent details for team id ', teamId, newValue);
+    
+    const options = {
+        api_key:TOOKAN_API_KEY,
+        date:newValue.date,
+        team_id:(await firestoreInstance.collection(TASKS_STATUS).doc(teamId).get())?.data()?.team_id,
+        fleet_id:newValue.fleet_id,
+        unzip:newValue.unzip,
+        sorting:newValue.sorting,
+        ignore_fleets:newValue.ignore_fleets,
+        has_agent_module:newValue.has_agent_module,
+        is_offline:newValue.is_offline,
+        search_string:newValue.search_string,
+        form_id:newValue.form_id
+    };
+    return client.getJobAndAgentDetails(options).then(res => {
+        console.log("Viewing tookan job and agent Details for options: ", options);
+        return jobAndAgentDetails(res,teamId);   
+    })
+    .catch(err => {
+        console.log("Viewing tookan job and agent Details failed: " + err)
+    });
+}
+async function jobAndAgentDetails(res,teamId): Promise<string> {
+    console.log("Viewing Tookan job and agent details with response successfully for teamId: ",teamId,"Response received from tookan: ",res.data);
+    console.log("Viewing Tookan job and agent details based on response for teamId started",teamId);
+    console.log("Viewing Tookan job and agent details for team_id ",teamId,"content: ",res.data);
+    const taskRef = firestoreInstance.collection(TEAMS_STATUS).doc(teamId);
+    taskRef.set(res.data).then(() => console.log("Viewing Tookan job and agent details based on tookan response for teamId:", teamId))
+    .catch(err => console.log("Viewing Tookan job and agent details on team id failed for: " + err));
+	return teamId
+}
+
+//create mission
+
+export async function CreateTookanMission(snapshot, context) {
+    
+    const missionId = context.params.missionId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering Create Tookan mission for mission id ', missionId, newValue);
+    
+    const options = {
+        api_key:TOOKAN_API_KEY,
+        mission_name:newValue.mission_name,
+        create_task_body:newValue.create_task_body,
+        end_date:newValue.end_date,
+        start_date:newValue.start_date,
+        dispatched_status:newValue.dispatched_status
+      
+    };
+    
+    return client.createMission(options).then(res => {
+        console.log("Creating tookan mission for options: ", options);
+        return updateMissionOnMissionCreate(res,missionId);   
+    })
+    .catch(err => {
+        console.log("Tookan Create mission failed: " + err)
+    });
+}
+async function updateMissionOnMissionCreate (res,missionId): Promise<string> {
+    console.log("Tookan mission created with response successfully for missionId: ",missionId,"Response received from tookan: ",res.data);
+    console.log("Update mission based on response for missionId started",missionId);
+    console.log("Updated content for mission_id ",missionId,"content: ",res.data);
+    const taskRef = firestoreInstance.collection(MISSION_STATUS).doc(missionId);
+    taskRef.set(res.data).then(() => console.log("mission updated based on tookan response for missionId:", missionId))
+    .catch(err => console.log("Update mission based on mission id failed for: " + err));
+	return missionId
+}
+
+//get mission list
+export async function GetMissionList(snapshot, context) {
+    
+    const missionId = context.params.missionId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering get mission list for mission id ', missionId, newValue);
+    
+    const options = {
+        api_key:TOOKAN_API_KEY,
+        end_date:newValue.end_date,
+        start_date:newValue.start_date
+        
+    };
+    return client.missionList(options).then(res => {
+        console.log("Viewing tookan mission list for options: ", options);
+        return missionListDetails(res,missionId);   
+    })
+    .catch(err => {
+        console.log("Viewing tookan mission list failed: " + err)
+    });
+}
+async function missionListDetails(res,missionId): Promise<string> {
+    console.log("Viewing Tookan mission list with response successfully for missionId: ",missionId,"Response received from tookan: ",res.data);
+    console.log("Viewing Tookan mission list based on response for missionId started",missionId);
+    console.log("Viewing Tookan mission list for mission_id ",missionId,"content: ",res.data);
+    const taskRef = firestoreInstance.collection(MISSION_STATUS).doc(missionId);
+    taskRef.set(res.data).then(() => console.log("Viewing Tookan mission list based on tookan response for missionId:", missionId))
+    .catch(err => console.log("Viewing Tookan mission list on mission id failed for: " + err));
+	return missionId
+}
+
+//delete mission
+
+export async function DeleteTookanMission(snapshot, context) {
+    
+    const missionId = context.params.missionId;
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering delete Tookan mission for mission id ', missionId, newValue);
+    
+    const options = {
+        api_key:TOOKAN_API_KEY,
+        mission_id:newValue.mission_id
+        
+    };
+    
+    return client.deleteMission(options).then(res => {
+        console.log("deleteting tookan mission for options: ", options);
+        return DeleteMission(res,missionId);   
+    })
+    .catch(err => {
+        console.log("Tookan delete mission failed: " + err)
+    });
+}
+async function DeleteMission (res,missionId): Promise<string> {
+    console.log("Tookan mission deleted with response successfully for missionId: ",missionId,"Response received from tookan: ",res.data);
+    console.log("delete mission based on response for missionId started",missionId);
+    console.log("deleted content for mission_id ",missionId,"content: ",res.data);
+    const taskRef = firestoreInstance.collection(MISSION_STATUS).doc(missionId);
+    taskRef.set(res.data).then(() => console.log("mission delete based on tookan response for missionId:", missionId))
+    .catch(err => console.log("delete mission based on mission id failed for: " + err));
+	return missionId
+}
+
+
