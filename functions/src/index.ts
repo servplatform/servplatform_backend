@@ -221,25 +221,23 @@ export const onEditCustomer = functions.firestore
      });
     });  
 
-export const onFindCustomerWithPhone = functions.firestore
-    .document('users/{customerId}')
-    .onCreate((snapshot,context) => {
+export const onFindCustomerWithPhone = functions.https.onRequest((req,res)=> {
         console.log('onFindCustomerWithPhoneTriggered',)
-        return tookanFunctions.FindCustomerWithPhone(snapshot,context)
+        return tookanFunctions.FindCustomerWithPhone(req,res)
     });  
 
-export const onFindCustomerWithName = functions.firestore
-    .document('users/{customerId}')
-    .onCreate((snapshot,context) => {
+export const onFindCustomerWithName = functions.https.onRequest((req,res) => {
         console.log('onFindCustomerWithNameTriggered',)
-        return tookanFunctions.FindCustomerWithName(snapshot,context);
+        return tookanFunctions.FindCustomerWithName(req,res);
     });  
 
-export const onViewCustomerProfile = functions.firestore
-    .document('users/{customerId}')
-    .onCreate((snapshot,context) => {
+export const onViewCustomerProfile = functions.https.onRequest((req,res) => {
         console.log('onViewCustomerProfileTriggered',)
-        return tookanFunctions.ViewTookanCustomerProfile(snapshot,context);
+        return tookanFunctions.ViewTookanCustomerProfile(req,res);
+    });  
+export const onGetAllCustomers = functions.https.onRequest((req,res) => {
+        console.log('onViewCustomerProfileTriggered',)
+        return tookanFunctions.viewCustomers(req,res);
     });  
 
 export const onDeleteCustomer = functions.firestore
@@ -251,6 +249,40 @@ export const onDeleteCustomer = functions.firestore
               return recombeeFunctions.deleteRecombeeUser(snapshot,context)
                })
     });
+export const onCreateTeam = functions.firestore
+    .document('teams/{teamId}')
+    .onCreate((snapshot,context) => {
+        console.log('onCreateTeamTriggered',)
+        return tookanFunctions.CreateTookanTeam(snapshot,context);
+    }); 
+
+export const onTeamEdit = functions.firestore
+    .document('teams/{teamId}')
+    .onUpdate((snapshot,context) => {
+        console.log('onUpdateTeamTriggered',)
+        return tookanFunctions.EditTookanTeam(snapshot,context);
+    }); 
+
+export const onDeleteTeam = functions.firestore
+    .document('teams/{teamId}')
+    .onDelete((snapshot,context) => {
+        console.log('onDeleteTeamTriggered',)
+        return tookanFunctions.DeleteTookanTeam(snapshot,context);
+    });
+
+export const onGetTeamDetails = functions.https.onRequest((req,res) => {
+        console.log('onGetTeamDetailsTriggered',)
+        return tookanFunctions.GetTookanTeamDetails(req,res);
+    }); 
+    
+export const onGetJobAndAgentDetails = functions.https.onRequest((req,res) => {
+        console.log('onGetJonAndAgentDetailsTriggered',)
+        return tookanFunctions.GetJobAndAgentDetails(req,res);
+    }); 
+export const onGetAllTeams = functions.https.onRequest((req,res) => {
+        console.log('onGetAllTeamsTriggered',)
+        return tookanFunctions.getAllTeams(req,res);
+    }); 
 export const onCreateMerchant = functions.firestore
     .document('providers/{providerId}')
     .onCreate((snapshot,context) => {

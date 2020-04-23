@@ -4,69 +4,68 @@ import {
 import {firestoreInstance} from "../index";
 import * as Tookan from "tookan-api";
 const client = new Tookan.Client({api_key:TOOKAN_API_KEY});
-
 export async function createTookanTask(snapshot, context) {
     
     const taskId = context.params.taskId;
     const newValue = snapshot.data();
+    if(newValue.merchant_id!== undefined){
+        const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+        const request = new XMLHttpRequest();
+        console.log("Adding Task for merchant id ",newValue.merchant_id,"for",TOOKAN_API_KEY);
+        request.open('POST', 'https://api.tookanapp.com/v2/create_task');    
+        request.setRequestHeader('Content-Type', 'application/json');
+    
+        request.onload = function () {
+            if (request.readyState === request.DONE) {
+                if (request.status === 200) {
+                    const res=JSON.parse(request.responseText)
+                    console.log("Adding Task Details of tookan agents:",(JSON.parse(request.responseText)).data);
+                     tookanaddagents(res,taskId).catch(err => {
+                        console.log("Tookan adding task failed: " + err)
+                    });
+                }
+            }
+        };
+    
+        const body = {
+            api_key:TOOKAN_API_KEY,
+            order_id:newValue.order_id,
+            job_description:newValue.job_description,
+            customer_email:newValue.customer_email,
+            customer_username:newValue.customer_username,
+            customer_phone:newValue.customer_phone,
+            customer_address:newValue.customer_address,
+            latitude:newValue.latitude,
+            longitude:newValue.longitude,
+            job_delivery_datetime:newValue.job_delivery_datetime,
+            custom_field_template:newValue.custom_field_template,
+            meta_data:newValue.meta_data,
+            team_id:newValue.team_id,
+            auto_assignment:newValue.auto_assignment,
+            has_pickup:newValue.has_pickup,
+            has_delivery:newValue.has_delivery,
+            layout_type:newValue.layout_type,
+            tracking_link:newValue.tracking_link,
+            merchant_id: newValue.merchant_id,
+            timezone:newValue.timezone,
+            fleet_id:newValue.fleet_id,
+            ref_images:newValue.ref_images,
+            notify:newValue.notify,
+            tags:newValue.tags,
+            geofence:newValue.geofence
+        };
+    
+        request.send(JSON.stringify(body));
+        
+    
+            }
+
+
+    else{
     
 
     console.log('Triggering Create Tookan task for task id ', taskId, newValue);
     
-   const options={
-        api_key:TOOKAN_API_KEY,
-        order_id:newValue.order_id,
-        job_description:newValue.job_description,
-        customer_email:newValue.customer_email,
-        customer_username:newValue.customer_username,
-        customer_phone:newValue.customer_phone,
-        customer_address:newValue.customer_address,
-        latitude:newValue.latitude,
-        longitude:newValue.longitude,
-        job_delivery_datetime:newValue.job_delivery_datetime,
-        custom_field_template:newValue.custom_field_template,
-        meta_data:newValue.meta_data,
-        auto_assignment:newValue.auto_assignment,
-        has_pickup:newValue.has_pickup,
-        has_delivery:newValue.has_delivery,
-        layout_type:newValue.layout_type,
-        tracking_link:newValue.tracking_link,
-        timezone:newValue.timezone,
-        fleet_id:newValue.fleet_id,
-        ref_images:newValue.ref_images,
-        notify:newValue.notify,
-        tags:newValue.tags,
-        geofence:newValue.geofence,
-        //ref_images:["http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png(2 kB) http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png","http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png(2 kB) http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png"],
-        
-      
-    };
-    //Create task in tookan
-    return client.createTask(options).then(res => {
-        console.log('Creating tookan task for options: ', options);
-        return updateTaskOnTaskCreate(res,taskId);   
-    })
-    .catch(err => {
-        console.log("Tookan Create task failed: " + err)
-    });
-}
-
-async function updateTaskOnTaskCreate (res,taskId): Promise<string> {
-    console.log("Tookan task created with response successfully for taskId: ",taskId,"Response received from tookan: ",res);
-    console.log("Update Task based on response for taskId started",taskId);
-    console.log("Updated content for task_id ",taskId,"content: ",res.data());
-    const taskRef = firestoreInstance.collection(TASKS_STATUS).doc(taskId);
-    taskRef.set(res.data()).then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err));
-	return taskId
-}
-export async function edittookantask(snapshot, context) {
-    
-    const taskId = context.params.taskId;
-    const newValue = snapshot.data();
-    
-
-    console.log('Triggering Edit Tookan task for task id ', taskId, newValue);
-
     const options = {
         api_key:TOOKAN_API_KEY,
         order_id:newValue.order_id,
@@ -91,8 +90,115 @@ export async function edittookantask(snapshot, context) {
         ref_images:newValue.ref_images,
         notify:newValue.notify,
         tags:newValue.tags,
+        geofence:newValue.geofence
+    };
+    //Create task in tookan
+    return client.createTask(options).then(res => {
+        console.log("Creating tookan task for options: ", options);
+        return updateTaskOnTaskCreate(res,taskId);   
+    })
+    .catch(err => {
+        console.log("Tookan Create task failed: " + err)
+    });
+}
+}
+
+async function updateTaskOnTaskCreate (res,taskId): Promise<string> {
+    console.log("Tookan task created with response successfully for taskId: ",taskId,"Response received from tookan: ",res.data);
+    console.log("Update Task based on response for taskId started",taskId);
+    console.log("Updated content for task_id ",taskId,"content: ",res.data);
+    const taskRef = firestoreInstance.collection(TASKS_STATUS).doc(taskId);
+    taskRef.set(res.data).then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err));
+	return taskId
+}
+
+export async function edittookantask(change, context) {
+    
+    const taskId = context.params.taskId;
+    const newValue = change.after.data();
+    if(newValue.merchant_id!== undefined){
+        const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+        const request = new XMLHttpRequest();
+        console.log("Editing Task for merchant id ",newValue.merchant_id,"for",TOOKAN_API_KEY);
+        request.open('POST', 'https://api.tookanapp.com/v2/edit_task');
+                request.setRequestHeader('Content-Type', 'application/json');
+    
+        request.onload = function () {
+            if (request.readyState === request.DONE) {
+                if (request.status === 200) {
+                    const res=JSON.parse(request.responseText)
+                    console.log("Editing Task Details of tookan agents:",(JSON.parse(request.responseText)).data);
+                     tookanaddagents(res,taskId).catch(err => {
+                        console.log("Tookan edit task failed: " + err)
+                    });
+                }
+            }
+        };
+    
+        const body = {
+            api_key:TOOKAN_API_KEY,
+            order_id:newValue.order_id,
+            job_description:newValue.job_description,
+            customer_email:newValue.customer_email,
+            customer_username:newValue.customer_username,
+            customer_phone:newValue.customer_phone,
+            customer_address:newValue.customer_address,
+            latitude:newValue.latitude,
+            longitude:newValue.longitude,
+            job_delivery_datetime:newValue.job_delivery_datetime,
+            custom_field_template:newValue.custom_field_template,
+            meta_data:newValue.meta_data,
+            team_id:newValue.team_id,
+            auto_assignment:newValue.auto_assignment,
+            has_pickup:newValue.has_pickup,
+            has_delivery:newValue.has_delivery,
+            layout_type:newValue.layout_type,
+            tracking_link:newValue.tracking_link,
+            merchant_id: newValue.merchant_id,
+            timezone:newValue.timezone,
+            fleet_id:newValue.fleet_id,
+            ref_images:newValue.ref_images,
+            notify:newValue.notify,
+            tags:newValue.tags,
+            geofence:newValue.geofence
+        };
+    
+        request.send(JSON.stringify(body));
+        
+    
+            }
+
+    else{
+    
+    console.log('Triggering Edit Tookan task for task id ', taskId, newValue);
+    
+    const options = {
+        
+        api_key:TOOKAN_API_KEY,
+        order_id:newValue.order_id,
+        job_description:newValue.job_description,
+        customer_email:newValue.customer_email,
+        customer_username:newValue.customer_username,
+        customer_phone:newValue.customer_phone,
+        customer_address:newValue.customer_address,
+        latitude:newValue.latitude,
+        longitude:newValue.longitude,
+        job_delivery_datetime:newValue.job_delivery_datetime,
+        custom_field_template:newValue.custom_field_template,
+        meta_data:newValue.meta_data,
+        team_id:newValue.team_id,
+        auto_assignment:newValue.auto_assignment,
+        has_pickup:newValue.has_pickup,
+        has_delivery:newValue.has_delivery,
+        layout_type:newValue.layout_type,
+        tracking_link:newValue.tracking_link,
+        timezone:newValue.timezone,
+        fleet_id:newValue.fleet_id,
+        ref_images:newValue.ref_images,
+        notify:newValue.notify,
+        tags:newValue.tags,
         geofence:newValue.geofence,
-        job_id: newValue.job_id,
+        job_id:(await firestoreInstance.collection(TASKS_STATUS).doc(taskId).get())?.data()?.job_id
       };
     //Edit task in tookan
     console.log('Editing tookan task for options: ', options);
@@ -103,13 +209,18 @@ export async function edittookantask(snapshot, context) {
         console.log("Tookan Edit task failed: " + err)
     });
 }
+}
+
 
 async function updateTaskOnTaskEdit (res,taskId): Promise<string> {
     console.log("Tookan task edited with response successfully for taskId: ",taskId,"Response received from tookan: ",res);
     console.log("Update Task based on response for taskId started",taskId);
-    console.log("Updated content for task_id ",taskId,"content: ",res.data().then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err)));
+    console.log("Updated content for task_id ",taskId,"content: ",res.data);
+    const taskRef = firestoreInstance.collection(TASKS_STATUS).doc(taskId);
+    taskRef.set(res.data).then(() => console.log("task updated based on tookan response for taskId:", taskId)).catch(err => console.log("Update task based on task id failed for: " + err));
 	return taskId
 }
+
 
 export async function deleteTookanTask(snapshot, context) {
     
@@ -1168,7 +1279,7 @@ export async function FindCustomerWithName(req, res) {
     
       //Getting customers with name in tookan
     console.log('Get customers with name for options: ', options);
-    return client.FindCustomerWithName(options).then(re=> {
+    return client.findCustomerWithName(options).then(re=> {
         console.log("result of FindCustomerWithName =",re.data)
 
     })
@@ -1179,17 +1290,14 @@ export async function FindCustomerWithName(req, res) {
 
 
 
-export async function ViewTookanCustomerProfile(snapshot, context) {
-    
-    const customerId = context.params.customerId;
-    const newValue = snapshot.data();
-    
+export async function ViewTookanCustomerProfile(req, res) {
 
-    console.log('Triggering view customer profile for customer Id', customerId, newValue);
+
+    console.log('Triggering view customer profile');
 
     const options = {
       api_key: TOOKAN_API_KEY,
-      customer_id: newValue.user_id
+      customer_id: req.body.user_id
     };
     
       //viewing customers profile in tookan
