@@ -517,88 +517,72 @@ export const onUpdateJob = functions.firestore
     export const onAutoAllocationFailed = functions.https.onRequest((req,res) => {
         return tookanFunctions.UpdateJobStatus(req,res);
     })
-  
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-        /*
-        export const onRequestRecieved = functions.https.onRequest(async (req,res) => {
-            //console.log(req.body)
-            // console.log(req.body.fleet_id)
-            const taskref = admin.firestore().collection('tasks_status');
-           let query = taskref.where('job_id', '==',82506622 ).get()
-            .then(snapshot => {
-            if (snapshot.empty) {
-            console.log('No matching documents.');
-             return;
-             }  
+
+ export const onDeleteTst=functions.firestore
+    .document('carts/{cartId}/{messageCollectionId}/{messageId}/{submessageCollectionId}/{submessageId}')
+   //.document('test1/{testId}/{messageCollectionId}/{messageId}')
+       //.onDelete((snapshot,context)=>{
+    .onDelete(async (snapshot,context)=>{
+        const fieldValue = admin.firestore.FieldValue; 
+
+    // const collectionPath=firestoreInstance.collection('test_1').doc('mg8519').collection('Urban Clap').get()
+     const path=context.params.messageCollectionId
+     console.log("Path",path)
+     firestoreInstance.collection('carts').doc('mg8519').get().then(doc => {
+         console.log(doc.id,"=>",doc.data())
+         const key=Object.keys(doc.data() as string[])[0]
+         console.log("Key",key)
+          const collectionPath=firestoreInstance.collection('carts').doc('mg8519')
+        // collectionPath.set({[path]:fieldValue.delete()},{merge:true}).catch(err => {
+            collectionPath.set({[key]:fieldValue.arrayRemove(path)},{merge:true}).catch(err => {
+           // collectionPath.update({'providers':fieldValue.arrayUnion('lala')}).catch(err => {
+            console.log("Tookan editing agents task failed: " + err)
+        }); 
+     }).catch(err => {
+        console.log("Tookan editing agents task failed: " + err)
+    }); 
     
-        snapshot.forEach(doc => {
-          console.log(doc.id, '=>', doc.data());
-        });
-        console.log(query)
+
+
     })
-    .catch(err => {
-      console.log('Error getting documents', err);
-    });
-         admin.firestore().collection('tasks_status').doc('ak52').update({
-                job_status:req.body
-               // req.body
-            }).then(snapshot=>{
-                res.redirect(303,'https://console.firebase.google.com/u/0/project/servplatform-d4668/database/firestore/data~2Fhooks~2Faaaaa');
-            }).catch(err => {
-             console.log("Getting Available merchant agents failed: " + err)
-         });
-         })
-
-
-
-
-          export const onRequestRecieved = functions.https.onRequest(async (req,res) => {
-          const taskref = firestoreInstance.collection('tasks_status');
-          taskref.where('job_id', '==',req.body.job_id).get()
-            .then(snapshot => {
-            if (snapshot.empty) {
-            console.log('Error.');
-             return;
-             }  
-        snapshot.forEach(doc => {
-          console.log(doc.id, '=>', doc.data());
-          taskref.doc(doc.id).update({
-            job_status:req.body
-        }).catch(err => {
-         console.log("Getting onRequests failed: " + err)
-     });
+    
+exports.recursiveDelete = functions
+    .runWith({
+      timeoutSeconds: 540,
+      memory: '2GB'
+    })
+    .https.onCall((data, context) => {
+      // Only allow admin users to execute this function.
+      if (!(context.auth && context.auth.token && context.auth.token.admin)) {
+        throw new functions.https.HttpsError(
+          'permission-denied',
+          'Must be an administrative user to initiate delete.'
+        );
+      }
+      if(data.path.get()==undefined){
+      const firebase_tools = require('firebase-tools');
+      const path = data.path;
+      console.log(
+        `User ${context.auth.uid} has requested to delete path ${path}`
+      );
+  
+      // Run a recursive delete on the given document or collection path.
+      // The 'token' must be set in the functions config, and can be generated
+      // at the command line by running 'firebase login:ci'.
+      return firebase_tools.firestore
+        .delete(path, {
+          project: process.env.GCLOUD_PROJECT,
+          recursive: true,
+          yes: true,
+          token: functions.config().fb.token
+        })
+        .then(() => {
+          return {
+            path: path 
+          };
         });
-       
-    }).catch(err => {
-        console.log("Getting onRequests failed: " + err)
+    }
     });
-  })
+               
 
-
-
-
-
- 
-
-        
-        */
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-
-     
- 
+                         
