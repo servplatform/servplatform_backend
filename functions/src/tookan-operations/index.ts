@@ -447,36 +447,6 @@ request.send(JSON.stringify(body));
 }
 
 
-// export async function GetRouteDetails(snapshot, context) {
-    
-//     const taskId = context.params.taskId;
-//     const newValue = snapshot.data();
-    
-
-//     console.log('Triggering Get  Route details for task id ', taskId, newValue);
-
-//     const options = {
-//         api_key: TOOKAN_API_KEY,
-//         date:newValue.date
-//       };
-//     console.log('Getting Get  Route details for options: ', options);
-//     return client.getRoute(options).then(res => {
-//         return routeDetails(res,taskId);   
-//     })
-//     .catch(err => {
-//         console.log("Tookan  Route details getting  failed: " + err)
-//     });
-// }
-
-// async function routeDetails(res,taskId): Promise<string> {
-//     console.log("Getting  Tookan Route details successfully for taskId: ",taskId,"Response received from tookan: ",res);
-//     console.log("Getting  Tookan Route details based on response for taskId started",taskId);
-//     console.log(" Tookan Route details calculated for task_id ",taskId,"content: ",res.data);
-//     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
-//     taskRef.set(res.data).then(() => console.log(" Tookan  Route details calculated based on tookan response for taskId:", taskId))
-//     .catch(err => console.log(" Tookan Route details Calculated based on task id failed for: " + err));
-// 	return taskId
-// }
 
 //get fare estimate
 export async function GetFareEstimate(snapshot, context) {
@@ -517,42 +487,6 @@ request.send(JSON.stringify(body));
 
 }
 
-// export async function GetFareEstimate(snapshot, context) {
-    
-//     const taskId = context.params.taskId;
-//     const newValue = snapshot.data();
-    
-
-//     console.log('Triggering Get  Fare Estimate for task id ', taskId, newValue);
-
-//     const options = {
-//         api_key: TOOKAN_API_KEY,
-//         template_name:newValue.template_name,
-//         pickup_latitude:newValue.pickup_latitude,
-//         pickup_longitude:newValue.pickup_longitude,
-//         delivery_latitude:newValue.delivery_latitude,
-//         delivery_longitude:newValue.delivery_longitude,
-//         formula_type:newValue.formula_type,
-//         map_keys:newValue.map_keys
-//       };
-//     console.log('Getting Get  Fare Estimate for options: ', options);
-//     return client.getFareEstimate(options).then(res => {
-//         return fareEstimate(res,taskId);   
-//     })
-//     .catch(err => {
-//         console.log("Tookan  Fare Estimate getting  failed: " + err)
-//     });
-// }
-
-// async function fareEstimate(res,taskId): Promise<string> {
-//     console.log("Getting  Fare Estimate successfully for taskId: ",taskId,"Response received from tookan: ",res);
-//     console.log("Getting  Fare Estimate based on response for taskId started",taskId);
-//     console.log(" Fare Estimate calculated for task_id ",taskId,"content: ",res.data);
-//     const taskRef = firestoreInstance.collection(TASKS).doc(taskId);
-//     taskRef.set(res.data).then(() => console.log(" Fare Estimate calculated based on tookan response for taskId:", taskId))
-//     .catch(err => console.log(" Fare Estimate Calculated based on task id failed for: " + err));
-// 	return taskId
-// }
 
 //get all tookan agent
 export async function getAllTookanAgents(snapshot, context) {
