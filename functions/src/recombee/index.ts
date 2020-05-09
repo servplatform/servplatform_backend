@@ -1,6 +1,9 @@
 //import { service } from "firebase-functions/lib/providers/analytics";
 //import { user } from "firebase-functions/lib/providers/auth";
 
+import { firestoreInstance } from "..";
+
+
 //import * as functions from 'firebase-functions';
 const recombee = require('recombee-api-client');
 const client = new recombee.ApiClient('serv-platform-dev', 'gcC0wKVjFGMopvW9T6ZSHJZbDR63qJX8UoImvdyo99UVrR3P0DnflQ55oM1kT4IJ');
@@ -245,19 +248,42 @@ async function createRecombeeData(snapshot, context) {
             return false;
                }) 
                } 
-      export async function RecommendItemsToUser(data,context){
-         const rqs=recombee.requests;
-         const text=data.text;
-         const location=data.location;
-         const price=data.price;
-         const uid=context.auth.uid;
-         const name = context.auth.token.name || null;
-         console.log('Recommending',text,name,uid)
-         return client.send(new rqs.RecommendItemsToUser(uid,5,{'returnProperties':true,'includedProperties':location,price})).catch((error) => {
-            console.log('Error sending message:', error);
-         return false;
-            }) 
+      export async function RecommendItemsToUser(req,res){
 
+         const rqs=recombee.requests;
+
+         const category=(await firestoreInstance.collection('users').doc(req.body.user_key).get())?.data()?.recommended_categories;
+         for (let i in category) {
+            
+            let cat=(await firestoreInstance.collection('users').doc(req.body.user_key).get())?.data()?.recommended_categories[i];
+            console.log(cat)
+         
+             client.send(new rqs.RecommendItemsToUser(req.body.user_key,5,
+            {
+               cascadeCreate:true,
+               scenario: 'homepage',
+               returnProperties:true,
+               includedProperties:["service_name","available_quantity","parent_category_key"],
+               logic: 'ecommerce:homepage',
+               //filter:"\"0\" in 'available_quantity'",
+               filter:"\""+cat+"\" in 'parent_category_key'",
+              booster:"if 'service_name' == \"Laundry\" then 2 else (if 'service_name' ==\"Shave\" then 1.5 else 1)",
+               diversity:'0.0',
+               minRelevance:'medium',
+               //rotationRate:'0.2',
+               rotationTime:'7200.0'
+            }
+            )).then(res1 => {
+               console.log("Recomended services for",res1.recomms[0].values.parent_category_key)
+               console.log(res1)
+               res.status(200).send(res1);
+
+           }).catch((error) => {
+               console.log('Error sending message:', error);
+           // return false;
+               }) 
+            
+         }
       }
       export async function RecommendUsersToUser(snapshot,context){
          const rqs=recombee.requests;

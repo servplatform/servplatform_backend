@@ -1,5 +1,5 @@
 import {
-    TOOKAN_API_KEY,TASKS, AGENTS,TASKS_STATUS,AGENTS_STATUS,PROVIDERS_STATUS, USERS_STATUS, TEAMS_STATUS
+    TOOKAN_API_KEY,TASKS, AGENTS,TASKS_STATUS,AGENTS_STATUS,PROVIDERS_STATUS, USERS_STATUS, TEAMS_STATUS, ORDERS
 } from "../constants";
 import {firestoreInstance} from "../index";
 import * as Tookan from "tookan-api";
@@ -2063,4 +2063,47 @@ export async function UpdateJobStatus(req,res){
     }).catch(err => {
         console.log("Getting onRequests failed: " + err)
     });
+}
+export async function cancelOrder(snapshot, context) {
+    const path=context.params.orderId
+    console.log("Orders cancelled refund initiated for",path)
+}
+export async function setOrder(snapshot, context) {
+        const path1=context.params.messageId
+        const path=context.params.orderId
+        console.log("Path",path1,path)
+        firestoreInstance.collection("tasks").doc(path1).set({
+            api_key:TOOKAN_API_KEY,
+            order_id:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.order_id,
+            job_description:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.job_description,
+            customer_email:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.customer_email,
+            customer_username:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.customer_username,
+            customer_phone:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.customer_phone,
+            customer_address:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.customer_address,
+            latitude:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.latitude,
+            longitude:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.longitude,
+            job_delivery_datetime:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.job_delivery_datetime,
+            custom_field_template:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.custom_field_template,
+            meta_data:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.meta_data,
+            team_id:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.team_id,
+            auto_assignment:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.auto_assignment,
+            has_pickup:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.has_pickup,
+            has_delivery:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.has_delivery,
+            layout_type:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.layout_type,
+            tracking_link:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.tracking_link,
+            merchant_id: (await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.merchant_id,
+            timezone:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.timezone,
+            fleet_id:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.fleet_id,
+            ref_images:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.ref_images,
+            notify:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.notify,
+            tags:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.tags,
+            geofence:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.geofence,
+        })
+        .then(function() {
+            console.log("Document successfully written!");
+        })
+        .catch(function(error) {
+            console.error("Error writing document: ", error);
+        });
+
 }

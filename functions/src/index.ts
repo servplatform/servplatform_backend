@@ -444,30 +444,32 @@ export const onUpdateJob = functions.firestore
                         return recombeeFunctions.DeleteRatingview(snapshot,context)
                       });
     export const onCreateOrders=functions.firestore
-                           .document('orders/{orderId}')
+                           .document('orders/{orderId}/{messageCollectionId}/{messageId}')
                            .onCreate((snapshot,context)=>{
-                            console.log('onCreatePurchaseRecombee triggered')
-                            return recombeeFunctions.AddPurchaseview(snapshot,context) 
+                            console.log('onCreateOrder triggered')
+                            return tookanFunctions.setOrder(snapshot,context).then(res=>{  
+                                console.log('onCreatePurchaseRecombee triggered')
+                                return recombeeFunctions.AddPurchaseview(snapshot,context)
+                                   })
                         });
     export const onDeleteOrders=functions.firestore
-                           .document('orders/{orderId}')
+                           .document('orders/{orderId}/{messageCollectionId}/{messageId}')
                            .onDelete((snapshot,context)=>{
                              console.log('onDeletePurchaseRecombee triggered')
                             return recombeeFunctions.DeletePurchaseview(snapshot,context) 
                                      
                                });
+    export const onUpdateOrder=functions.firestore
+                            .document('orders/{orderId}')
+                            .onUpdate((snapshot,context)=>{
+                            console.log('onUpdateOrder Triggered')
+                            return tookanFunctions.cancelOrder(snapshot,context)
+                                });
                                            
-     export const onRecommendItemsToUser=functions.https.onCall((data,context)=>{
+     export const onRecommendItemsToUser=functions.https.onRequest((req,res)=>{
                             console.log('RecommendItemsToUser triggered')
-                                return recombeeFunctions.RecommendItemsToUser(data,context).then(res=>{
-                                console.log(res)
-                                const location=data.location
-                                return{
-                                    body:data.text,
-                                    location:location,
-                                    from:context.auth?.uid
-                                }
-                                })
+                                return recombeeFunctions.RecommendItemsToUser(req,res)
+
                                  }); 
     export const RecommendUsersToUser=functions.https.onCall((data,context)=>{
                             console.log('RecommendUsersToUserTriggered')
@@ -519,28 +521,28 @@ export const onUpdateJob = functions.firestore
     })
 
  export const onDeleteTst=functions.firestore
-    .document('carts/{cartId}/{messageCollectionId}/{messageId}/{submessageCollectionId}/{submessageId}')
+    .document('carts/{cartId}/{messageCollectionId}/{messageId}/{submessageCollectionId}/{submessageId}/{submessageCollectionId1}/{submessageId1}/{submessageCollectionId2}/{submessageId2}')
    //.document('test1/{testId}/{messageCollectionId}/{messageId}')
        //.onDelete((snapshot,context)=>{
     .onDelete(async (snapshot,context)=>{
         const fieldValue = admin.firestore.FieldValue; 
-
+        const docu=context.params.cartId
     // const collectionPath=firestoreInstance.collection('test_1').doc('mg8519').collection('Urban Clap').get()
      const path=context.params.messageCollectionId
-     console.log("Path",path)
-     firestoreInstance.collection('carts').doc('mg8519').get().then(doc => {
+     console.log("Path",path,docu)
+     firestoreInstance.collection('carts').doc(docu).get().then(doc => {
          console.log(doc.id,"=>",doc.data())
          const key=Object.keys(doc.data() as string[])[0]
          console.log("Key",key)
-          const collectionPath=firestoreInstance.collection('carts').doc('mg8519')
-        // collectionPath.set({[path]:fieldValue.delete()},{merge:true}).catch(err => {
-            collectionPath.set({[key]:fieldValue.arrayRemove(path)},{merge:true}).catch(err => {
-           // collectionPath.update({'providers':fieldValue.arrayUnion('lala')}).catch(err => {
+          const collectionPath=firestoreInstance.collection('carts').doc(docu)
+            collectionPath.set({'providers':fieldValue.arrayRemove(path)},{merge:true}).catch(err => {
             console.log("Tookan editing agents task failed: " + err)
         }); 
      }).catch(err => {
         console.log("Tookan editing agents task failed: " + err)
     }); 
+    
+   
     
 
 
