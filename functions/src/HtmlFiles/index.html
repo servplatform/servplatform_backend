@@ -1,0 +1,61 @@
+<html>
+<head>
+  <script src="https://api.sandbox.hyperwallet.com/rest/widgets/transfer-methods/usr-02b3f358-6540-4d74-80e8-cf4385309dce/en.min.js" />
+</head>
+
+<body>
+  <div id="TMWidget"></div>
+
+	<script type="text/javascript">
+	HWWidgets.initialize((onSuccess, onFailure) => {
+		issueAuthenticationToken((resp) => {
+		  onSuccess(resp.value);
+		  });
+	});
+
+	HWWidgets.transferMethods.configure({
+		"template": "bootstrap3",
+		"el": document.getElementById("widget-element"),
+		"onComplete": function(trmObject, completionResult) {
+		  // redirect payee to another page with the result and token
+		  var token = trmObject.token;
+		  var redirect = "www.yoursite.com";
+		  var url = `http://${redirect}?result=${completionResult}&token=${token}`;
+		  window.location = url;
+		  }
+	}).display(function () {
+	  //this is a callback event called when display is done
+	});
+
+	// Example implementation of `getAuthenticationToken`
+	function issueAuthenticationToken(callback) {
+	  $.ajax({
+
+		url: `${restUrl}/users/${userToken}/authentication-token`,
+		method: 'POST',
+		dataType: 'json',
+		beforeSend: function(xhrObj){
+		  xhrObj.setRequestHeader("Content-Type","application/json");
+		  xhrObj.setRequestHeader("Accept","application/json");
+		  xhrObj.setRequestHeader("Authorization", "Basic " + btoa(credentials));
+		},
+		success: function( data, txtStatus, xhr ) {
+		  callback(data);
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+		  console.log(jqXHR, textStatus, errorThrown);
+		}
+	  });
+	}
+  </script>
+  <!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="/__/firebase/7.14.1/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="/__/firebase/7.14.1/firebase-analytics.js"></script>
+
+<!-- Initialize Firebase -->
+<script src="/__/firebase/init.js"></script>
+</body>
+</html>
