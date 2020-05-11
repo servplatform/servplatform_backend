@@ -26,5 +26,7 @@ export let PROVIDERS_STATUS='providers_status';
 export let MISSION='missions';
 export let TEAMS = 'teams';
 export let TEAMS_STATUS = 'teams_status';
+export let AZURE_KEY = "919a1c36b6a24e4585f53b4c0bd64752";
+export let AZURE_ENDPOINT = "https://tushant.cognitiveservices.azure.com/";
 
 

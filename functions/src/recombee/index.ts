@@ -253,10 +253,11 @@ async function createRecombeeData(snapshot, context) {
          const rqs=recombee.requests;
 
          const category=(await firestoreInstance.collection('users').doc(req.body.user_key).get())?.data()?.recommended_categories;
+        
          for (let i in category) {
             
             let cat=(await firestoreInstance.collection('users').doc(req.body.user_key).get())?.data()?.recommended_categories[i];
-            console.log(cat)
+            //console.log(cat)
          
              client.send(new rqs.RecommendItemsToUser(req.body.user_key,5,
             {
@@ -267,7 +268,8 @@ async function createRecombeeData(snapshot, context) {
                logic: 'ecommerce:homepage',
                //filter:"\"0\" in 'available_quantity'",
                filter:"\""+cat+"\" in 'parent_category_key'",
-              booster:"if 'service_name' == \"Laundry\" then 2 else (if 'service_name' ==\"Shave\" then 1.5 else 1)",
+               booster:"if 'service_name' == \"Laundry\" then 2 else (if 'service_name' ==\"Shave\" then 1.5 else 1)",
+              //booster:"if  $timewhichadded$> now() - ($number_of_days$ * 24 * 60 * 60)  then 2 else 1",
                diversity:'0.0',
                minRelevance:'medium',
                //rotationRate:'0.2',
@@ -275,8 +277,12 @@ async function createRecombeeData(snapshot, context) {
             }
             )).then(res1 => {
                console.log("Recomended services for",res1.recomms[0].values.parent_category_key)
-               console.log(res1)
-               res.status(200).send(res1);
+               /*for (let j in res1.recomms) {
+               console.log(res1.recomms[j].id)
+               }*/
+               console.log(cat,":",res1)
+               res.status(200).send(cat+" "+JSON.stringify(res1.recomms));
+              
 
            }).catch((error) => {
                console.log('Error sending message:', error);

@@ -2107,3 +2107,463 @@ export async function setOrder(snapshot, context) {
         });
 
 }
+export async function CreateTookanManager(snapshot, context) {
+    const managerId = context.params.managerId;
+    const newValue = snapshot.data();
+
+    console.log('Triggering tookan manager of manager Id', managerId, newValue);
+
+    const options = {
+        'api_key': TOOKAN_API_KEY,
+        'email': newValue.email,
+        'password': newValue.password,
+        'first_name': newValue.first_name,
+        'last_name': newValue.last_name,
+        'phone': newValue.phone,
+        'timezone': newValue.timezone,
+        'task_access': newValue.task_access,
+        'add_driver_access': newValue.add_driver_access,
+        'dispatcher_teams': newValue.dispatcher_teams
+
+    }
+
+    const opt = {
+        'api_key' : TOOKAN_API_KEY,
+    }
+
+    return client.createManager(options).then(res => {
+        console.log("result :",res);
+        const resultData = res.data
+        const Ref = firestoreInstance.collection('manager_tookan').doc(managerId)
+        Ref.update(resultData).then(() => console.log("updated resultData")).catch(err => console.log("error =",err))
+
+        return client.viewManager(opt).then(re => {
+            console.log("result of viewManager =",re)
+            const reData = re.data
+            const currData = reData.filter(item => item.email === newValue.email);
+            console.log("currData =",currData)
+            const curr = currData.pop()
+            const dispatcher_id = curr.dispatcher_id;
+            console.log("dispatcher id =",dispatcher_id)
+            const dis_Ref = firestoreInstance.collection('manager_tookan').doc(managerId)
+            dis_Ref.update({'dispatcher_id': dispatcher_id}).then(() => console.log("updated dispatcher Id")).catch(err => console.log("error =",err))
+
+        })
+        .catch(err => {
+            console.log("error in view manager :", err)
+        })
+    })
+    .catch(err => {
+        console.log("error occures =",err);
+    })
+}
+
+
+export async function TookanViewManager(req,res) {
+    console.log(req,res)
+    const opt = {
+        'api_key' : TOOKAN_API_KEY,
+    }
+    client.viewManager(req).then(re => {
+        console.log("option of viewManager =",opt,req)
+        console.log("result of viewManager =",re)
+
+    })
+    .catch(err => {
+        console.log("error in view manager :", err)
+    })
+
+}
+
+
+export async function DeleteTookanManager(snapshot,context) {
+    const managerId = context.params.managerId;
+    const newValue = snapshot.data();
+
+    console.log('Triggering tookan manager delete of manager Id', managerId, newValue);
+
+    const options = {
+        'api_key': TOOKAN_API_KEY,
+        'dispatcher_id': newValue.dispatcher_id
+    }
+
+    const opt = {
+        'api_key' : TOOKAN_API_KEY,
+    }
+
+    return client.deleteManager(options).then(res =>
+        {
+            console.log("result of deletion manager =",res)
+            
+            client.viewManager(opt).then(re => {
+                console.log("result of viewManager =",re)
+            })
+            .catch(err => {
+                console.log("error in view manager :", err)
+            })
+        })
+        .catch(err => {
+            console.log("error in deleting manager =",err)
+        })
+}
+
+
+
+
+export async function GeofenceAddRegion(snapshot,context) {
+    const regionId = context.params.regionId;
+    const newValue = snapshot.data();
+
+    console.log('Triggering tookan geofence add region of region Id', regionId, newValue);
+
+    const options =
+    {
+        'api_key': TOOKAN_API_KEY,
+        'user_id': newValue.user_id,
+        'region_name': newValue.region_name,
+        'region_description': newValue.region_description,
+        'region_data': newValue.region_data,
+        'selected_team_id': newValue.selected_team_id,
+        'fleet_id': newValue.fleet_id,
+        'is_force': newValue.is_force
+    }
+
+
+    return client.addRegion(options).then(res =>
+        {
+            console.log("result of add region =",res);
+            const opt ={
+                'user_id': newValue.user_id,
+            }
+            return client.viewRegions(opt).then(re =>
+                {
+                    console.log("result of viewRegion=",re)
+                    const reData = re.data
+                    const currData = reData.filter(item => item.region_name === newValue.region_name);
+                    console.log("currData =",currData)
+                    const curr = currData.pop()
+                    const reg_id = curr.region_id;
+                    console.log("region id =",reg_id)
+                    const Ref = firestoreInstance.collection('tookan_add_region').doc(regionId)
+                    Ref.update({region_id : reg_id}).then(() => console.log("updated region Id")).catch(err => console.log("error =",err))
+
+
+                })
+            .catch(err =>{console.log("error in view Region",err)})
+        })
+        .catch(err => {
+            console.log("error in adding region =",err);
+        })
+
+}
+
+
+export async function GeofenceUpdateRegion(snapshot,context) {
+    const regionId = context.params.regionId;
+    const newValue = snapshot.after.data();
+
+    console.log('Triggering tookan geofence edit region of region Id', regionId, newValue);
+
+    const options =
+    {     
+        'region_id': newValue.region_id,
+        'api_key': TOOKAN_API_KEY,
+        'user_id': newValue.user_id,
+        'region_name': newValue.region_name,
+        'region_description': newValue.region_description,
+        'region_data': newValue.region_data,
+        'selected_team_id': newValue.selected_team_id,
+        'fleet_id': newValue.fleet_id,
+        'is_force': newValue.is_force
+
+    }
+
+   return client.editRegion(options).then(res =>
+        {
+            console.log("result of editing region =",res);
+            const opt ={
+                'user_id': newValue.user_id,
+            }
+            client.viewRegions(opt).then(re =>
+                {console.log("result of viewRegion=",re)})
+            .catch(err =>{console.log("error in view Region",err)})
+        })
+        .catch(err => {
+            console.log("error in editing region =",err);
+        })
+}
+
+
+export async function GeofenceDeleteRegion(snapshot,context) {
+    const regionId = context.params.regionId;
+    const newValue = snapshot.data();
+
+    console.log('Triggering tookan geofence delete region of region Id', regionId, newValue);
+
+    const options =
+    {
+        'user_id': newValue.user_id,
+        'region_id': newValue.region_id
+    }
+
+
+    return client.deleteRegion(options).then(res =>{
+        console.log("result of delete region=",res)
+
+        const opt ={
+            'user_id': newValue.user_id,
+        }
+        client.viewRegions(opt).then(re =>
+            {console.log("result of viewRegion=",re)})
+        .catch(err =>{console.log("error in view Region",err)})
+    })
+    .catch(err => {
+        console.log("errorin editing region = ",err)
+    })
+}
+
+
+export async function TookanViewRegion(data,context) {
+    console.log(data,context)
+
+    const opt = {
+        api_key: TOOKAN_API_KEY,
+        user_id: data.body.user_id,
+    }
+    client.viewRegions(opt).then(re => {
+        console.log("result of viewRegion =",re)
+    })
+    .catch(err => {
+        console.log("error in view Region :", err)
+    })
+}
+
+
+export async function TookanViewRegionDetails(data,context) {
+    console.log(data,context)
+
+    const opt = {
+        //'api_key': TOOKAN_API_KEY,
+        'user_id': data.user_id,
+        'region_id': data.region_id
+    }
+    client.viewRegionDetails(opt).then(re => {
+        console.log("result of viewRegionDetails =",re)
+    })
+    .catch(err => {
+        console.log("error in view Region Details :", err)
+    })
+}
+
+
+export async function TookanRemoveRegionfromAgent(data,context) {
+    console.log(data,context)
+
+    const opt = {
+        //'api_key': TOOKAN_API_KEY,
+        'user_id': data.user_id,
+        'region_id': data.region_id,
+        'fleet_id':data.fleet_id	
+    }
+    client.removeRegionForAgent(opt).then(re => {
+        console.log("result of removeRegionForAgent  =",re)
+    })
+    .catch(err => {
+        console.log("error in removeRegionForAgent  :", err)
+    })
+}
+export async function createTookanMultipleTask(snapshot,context){
+    const multipleTaskId = context.params.multipleTaskId;
+    const newValue = snapshot.data();
+    console.log("multipleTaskId,newValue",multipleTaskId,newValue)
+
+    const options = {
+        "api_key": TOOKAN_API_KEY,
+        "fleet_id": newValue.fleet_id, //19750,
+        "timezone": newValue.timezone, //-330,
+        "has_pickup": newValue.has_pickup, //1,
+        "has_delivery": newValue.has_delivery, //1,
+        "layout_type": newValue.layout_type, //0,
+        "geofence": newValue.geofence, //0,
+        "team_id": newValue.team_id, //"",
+        "auto_assignment": newValue.auto_assignment, //0,
+        "tags": newValue.tags, // "",
+        "pickups": [{
+            "address": newValue.pickups_address, //"Chandigarh International Airport, Sahibzada Ajit Singh Nagar, Punjab, India",
+            "latitude": newValue.pickups_latitude,  //30.7333148,
+            "longitude": newValue.pickups_longitude, //76.7794179,
+            "time": newValue.pickups_time, //"2020-04-15 17:24:00",
+            "phone": newValue.pickups_phone, // "+911234567890",
+            "template_name": newValue.pickups_template_name, // "Template_1",
+            "template_data": [{
+                "label": newValue.pickups_template_data_label_p, //"Price",
+                "data": newValue.pickups_template_data_price, //"100"
+            }, {
+                "label": newValue.pickups_template_data_label_q, //"Quantity",
+                "data": newValue.pickups_template_data_quantity, //"100"
+            }],
+            "ref_images": newValue.pickups_ref_images,//["http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png"],
+            "name": newValue.pickups_name, //"Saurabh",
+            "email": newValue.pickups_email, //"saurabh@saurabh.com",
+            "order_id": newValue.pickups_order_id, //"12234556",
+            "job_description": newValue.pickups_job_description, //"Job description goes here"
+        }], 
+        "deliveries": [{
+            "address": newValue.deliveries_address, // "Chandigarh Railway Station, Daria, Chandigarh, India",
+            "latitude": newValue.deliveries_latitude, //30.7022191,
+            "longitude": newValue.deliveries_lognitude, //76.82247009999992,
+            "time": newValue.deliveries_time, //"2020-04-15 17:30:00",
+            "phone": newValue.deliveries_phone, //"+913242342342",
+            "template_name": newValue.deliveries_template_name, //"Template_1",
+            "template_data": [
+            {
+            "label": newValue.deliveries_label_p, //"Price",
+            "data": newValue.deliveries_data_price //"100"
+            },
+            {
+            "label": newValue.deliveries_label_q, //"Quantity",
+            "data": newValue.deliveries_data_quantity // "100"
+            }
+            ], 
+            "ref_images": newValue.deliveries_ref_images, //["http://tookanapp.com/wp-content/uploads/2015/11/logo_dark.png"],
+            "name": newValue.deliveries_name, //"Saurabh",
+            "email": newValue.deliveries_email, //"saurabh@saurabh.com",
+            "order_id": newValue.deliveries_order_id, //"123456",
+            "job_description": newValue.deliveries_job_description //"Job description goes here"
+        }] 
+
+    }       
+
+    return client.createMultipleTasks(options).then(res => {
+        console.log('Creating tookan task for options: ', options);
+        console.log("result of multiple tasks =",res);
+        const pickupRes = res.data.pickups;
+        console.log("pickupRes=",pickupRes);
+        const pick = pickupRes.pop();
+        console.log("pick=",pick);
+        const deliveriesRes = res.data.deliveries;
+        console.log("deliverRes =",deliveriesRes);
+        const deliver = deliveriesRes.pop();
+        console.log("deliver =",deliver);
+
+        const pickRef = firestoreInstance.collection('multiple_tasks').doc(multipleTaskId)
+        pickRef.update(pick).then(() => console.log("updated multiple tassks result")).catch(err => console.log("error =",err))
+        const Ref = firestoreInstance.collection('multiple_tasks').doc(multipleTaskId)
+        Ref.update(deliver).then(() => console.log("updated multiple tassks result")).catch(err => console.log("error =",err))
+ 
+        return   
+
+    })
+    .catch(err => {
+        console.log("Tookan Create multiple task failed: " + err)
+    });
+
+}
+
+
+export async function EditTookanMultipleTask(snapshot,context) {
+    const multipleTaskId = context.params.multipleTaskId;
+    const newValue = snapshot.data();
+    console.log("multipleTaskId,newValue",multipleTaskId,newValue)
+    const pick = newValue.pick;
+    const deliver = newValue.deliver;
+
+    const options = 
+        {
+            "api_key":TOOKAN_API_KEY,
+            "pickups":[{
+                        "job_id": pick.job_id, //"254737",
+                        "address": pick.address, //"Chandigarh International Airport, Sahibzada Ajit Singh Nagar, Punjab, India",
+                        "latitude": pick.latitude, //30.7333148,
+                        "longitude": pick.longitude, //76.7794179,
+                        "time": pick.time,//"2017-08-14 17:24:00",
+                        "phone": pick.phone//"+911234567890"
+                        }],
+            "deliveries":[{
+                        "job_id": deliver.job_id, //"123345",
+                        "address": deliver.address, //"Chandigarh Railway Station, Daria, Chandigarh, India",
+                        "latitude": deliver.latitude, //30.7022191,
+                        "longitude": deliver.longitude, //76.82247009999992,
+                        "time":  deliver.time, //"2017-08-14 17:30:00",
+                        "phone": deliver.phone, //"+913242342342"
+                        }]
+        }
+    
+
+    return client.editMultipleTasks(options).then(res => {
+        console.log('editing tookan task for options: ', options);
+        console.log("result of editing multiple tasks =",res);
+        return   
+    })
+    .catch(err => {
+        console.log("Tookan edit multiple task failed: " + err)
+    });
+}
+
+
+export async function TookanGetTaskDetails(data,context){
+    console.log(data,context)
+    //console.log("data.data() =",data.get())
+
+    const options = {
+        "api_key":TOOKAN_API_KEY,
+        "job_ids":data.body.job_ids,
+        "include_task_history": data.body.include_task_history
+    } 
+
+    return client.getTaskDetails(options).then(res => {
+        //console.log("data.data() =",data.get())
+                
+        console.log("get Task details options =",options)
+        console.log("result of task details =",res)
+    })
+    .catch(err => {
+        console.log("get task details tookan error =",err)
+    })
+}
+
+
+export async function TookanViewAllDeletedTasks(data,context) {
+    console.log(data,context)
+
+    const options = {
+        "api_key": TOOKAN_API_KEY,              //"00be7353ba73d5cb9812b9b9af404f8b",
+        "job_type": data.job_type,              // 1,
+        "start_date": data.start_date,          //"2016-08-20",
+        "end_date": data.end_date,              //"2016-08-20",
+        "custom_fields": data.custom_fields,    //0,
+        "is_pagination": data.is_pagination,    //1,
+        "requested_page": data.requested_page,  //1,
+        "customer_id": data.customer_id,        //"",
+        "fleet_id": data.fleet_id,              //1234,
+        "job_id": data.job_id,                  //[123, 456, 789],
+        "order_id": data.order_id,              //["123", "Y-456", "O_789"],
+        "team_id": data.team_id                 //123
+    }
+
+    return client.getAllDeletedTasks(options).then(res => {
+        console.log("get all deleted tasks options = ",options)
+        console.log("result of get all deleted tasks =",res)
+    })
+    .catch(err => {
+        console.log("get all deleted tasks error =",err)
+    })
+}
+
+
+export async function TookanonGetAllRelatedTasks(data,context){
+    console.log(data,context)
+
+    const options = {
+        "api_key": TOOKAN_API_KEY,              //"00be7353ba73d5cb9812b9b9af404f8b",
+        "pickup_delivery_relationship": data.pickup_delivery_relationship      //"229315408060285612612"
+    }
+
+    return client.getAllRelatedTasks(options).then(res => {
+        console.log("get all Related tasks options = ",options)
+        console.log("result of get all related tasks =",res)
+    })
+    .catch(err => {
+        console.log("get all related tasks error =",err)
+    })
+}

@@ -9,6 +9,8 @@ admin.initializeApp({
 import * as tookanFunctions from './tookan-operations/index'
 import * as algoliaFunctions from './algolia/index'
 import * as recombeeFunctions from './recombee/index'
+import * as CmFunctions from './text-moderation'
+import * as ImageFunctions from './image-moderation'
 //import { TASKS } from './constants';
 
 export const firestoreInstance = admin.firestore();
@@ -75,6 +77,38 @@ export const onTaskStatistics = functions.firestore
         console.log('onTaskStatisticsTriggered',)
         return tookanFunctions.GettookantaskStatistics(snapshot,context);
     }); 
+    export const onCreateMultipleTasks = functions.firestore
+    .document('multiple_tasks/{multipleTaskId}')
+    .onCreate((snapshot,context) => {
+        console.log('onCreateMultipleTasksTriggered',)
+        return tookanFunctions.createTookanMultipleTask(snapshot,context);
+    });
+
+export const onEditMultipleTasks = functions.firestore
+    .document('multiple_tasks/{multipleTaskId}')
+    .onUpdate((snapshot,context) => {
+        console.log('onEditMultipleTasksTriggered',)
+        return tookanFunctions.EditTookanMultipleTask(snapshot,context);
+    });
+
+
+export const onGetTaskDetails = functions.https.onRequest((req, res)=>{
+        console.log("onGetTaskDetailsTriggered",)
+        return tookanFunctions.TookanGetTaskDetails(req, res);
+    }
+    );
+
+export const onViewAllDeletedTasks = functions.https.onRequest((req,res)=>{
+        console.log("onViewAllDeletedTasksTriggered",)
+        return tookanFunctions.TookanViewAllDeletedTasks(req,res);
+    }
+    );
+
+export const onGetAllRelatedTasks = functions.https.onRequest((req,res)=>{
+        console.log("onGetAllRelatedTasksTriggered",)
+        return tookanFunctions.TookanonGetAllRelatedTasks(req,res);
+    }
+    );
 
 export const onGetAllAgents = functions.https.onCall((data,context)=> {
         console.log('onGetAllAgentsTriggered',)
@@ -361,11 +395,17 @@ export const onDeleteMission = functions.firestore
     return tookanFunctions.TookanWebHook(data,context);
 
  });
+
  export const onCreateService=functions.firestore
         .document('services/{serviceId}')
         .onCreate((snapshot,context)=>{
+            const msgId = context.params.serviceId;
+            const msgValue = snapshot.data();
            console.log('onCreateServiceTriggered',)
            return algoliaFunctions.createAlgoliaService(snapshot,context).then(res => {
+            console.log("onCreateServiceTriggered",)
+        return CmFunctions.createMsgJob(snapshot,context,msgId,msgValue,"services_text_moderator_result","services_text_moderator_job_id",'service');
+            }).then(res => {
             console.log('onCreateRecombeeItemTriggered')
             return recombeeFunctions.createRecombeeItem(snapshot,context);   
         })
@@ -585,6 +625,146 @@ exports.recursiveDelete = functions
         });
     }
     });
-               
+    export const onCreateMessageCmId = functions.firestore
+    .document('messages_text_moderator_job_id/{msgId}')
+    .onCreate((snapshot,context) => {
+        const msgId = context.params.msgId;
+        const msgValue = snapshot.data();
+
+        console.log("onCreateMessageCmIdTriggered",)
+        return CmFunctions.getMsgCmJobDet(snapshot,context,msgId,msgValue,"messages_text_moderator_job_id","messages_text_moderator_rev_id","messages","messages_text_moderator_not_okay",'message');
+    });
+
+export const onCreateServiceCmId = functions.firestore
+    .document('services_text_moderator_job_id/{serviceId}')
+    .onCreate((snapshot,context) => {
+        const msgId = context.params.serviceId;
+        const msgValue = snapshot.data();
+        console.log("onCreateServiceCmIdTriggered",)
+        return CmFunctions.getMsgCmJobDet(snapshot,context,msgId,msgValue,"services_text_moderator_job_id","services_text_moderator_rev_id","services","services_text_moderator_not_okay",'service');
+    });
+
+export const onMessageCmRevCall = functions.firestore
+    .document('messages_text_moderator_rev_call/{msgId}')
+    .onCreate((snapshot,context) => {
+        const msgId = context.params.msgId;
+        const msgValue = snapshot.data();
+        console.log("onMessageCmRevCallTriggered",)
+        return CmFunctions.getMsgRev(snapshot,context,msgId,msgValue,"messages_text_moderator_job_id","messages","messages_text_moderator_not_okay",'message');
+    });
+
+export const onServicesCmRevCall = functions.firestore
+    .document('services_text_moderator_rev_call/{serviceId}')
+    .onCreate((snapshot,context) => {
+        const msgId = context.params.serviceId;
+        const msgValue = snapshot.data();
+        console.log("onServicesCmRevCallTriggered",)
+        return CmFunctions.getMsgRev(snapshot,context,msgId,msgValue,"services_text_moderator_job_id","services","services_text_moderator_not_okay",'service');
+    });
+
+
+
+
+
+
+export const onImgAdd = functions.firestore
+    .document('image/{imgId}')
+    .onCreate((snapshot,context) =>{
+        const imgId = context.params.imgId;
+        const imgValue = snapshot.data();
+        console.log("onImgAdd",)
+        return ImageFunctions.createImgJob(snapshot,context,imgId,imgValue,'image_image_moderator_job');
+    });
+
+export const onImgCmJobId = functions.firestore
+    .document('image_image_moderator_job/{imgId}')
+    .onCreate((snapshot,context) => {
+        const imgId = context.params.imgId;
+        const imgValue = snapshot.data();
+        console.log("OnImgCmJobId",)
+        return ImageFunctions.getImgCmJobDet(snapshot,context,imgId,imgValue,'image_image_moderator_job','image_image_moderator_rev');
+    });
+
+export const onImgCmRevCall = functions.firestore
+    .document('image_image_moderator_rev_call/{imgId}')
+    .onCreate((snapshot,context) => {
+        const imgId = context.params.imgId;
+        const imgValue = snapshot.data();
+        console.log("onImgCmRevCall",)
+        return ImageFunctions.getImgRev(snapshot,context,imgId,imgValue,'image_image_moderator_job');
+    }); 
+export const onCreateMessage = functions.firestore
+    .document('messages/{msgId}')
+    .onCreate((snapshot,context) => {
+        const msgId = context.params.msgId;
+        const msgValue = snapshot.data();
+        
+        console.log("onCreateMessageTriggered",)
+        return CmFunctions.createMsgJob(snapshot,context,msgId,msgValue,"messages_text_moderator_result","messages_text_moderator_job_id",'message');
+    });
+    export const onCreateManager = functions.firestore
+    .document('manager_tookan/{managerId}')
+    .onCreate((snapshot,context) => {
+        console.log('onCreateManagerTriggered',)
+        return tookanFunctions.CreateTookanManager(snapshot,context);
+    });
+
+
+export const onViewManager = functions.https.onRequest((req,res)=>{
+    console.log("onViewManagerTriggered",)
+    return tookanFunctions.TookanViewManager(req,res);
+}
+);
+    
+
+export const onDeleteManager = functions.firestore
+    .document('manager_tookan/{managerId}')
+    .onDelete((snapshot,context) => {
+        console.log('onDeleteManagerTriggered',)
+        return tookanFunctions.DeleteTookanManager(snapshot,context);
+    });
+
+
+
+
+export const onAddRegion = functions.firestore
+    .document('tookan_add_region/{regionId}')
+    .onCreate((snapshot,context) => {
+        console.log('onAddRegionTriggered',)
+        return tookanFunctions.GeofenceAddRegion(snapshot,context);
+    });
+
+export const onUpdateRegion = functions.firestore
+    .document('tookan_add_region/{regionId}')
+    .onUpdate((snapshot,context) => {
+        console.log('onupdateRegionTriggered',)
+        return tookanFunctions.GeofenceUpdateRegion(snapshot,context);
+    });
+
+export const onDeleteRegion = functions.firestore
+    .document('tookan_add_region/{regionId}')
+    .onDelete((snapshot,context) => {
+        console.log('onDeleteRegionTriggered',)
+        return tookanFunctions.GeofenceDeleteRegion(snapshot,context);
+    });
+
+export const onViewRegion = functions.https.onRequest((req,res)=>{
+        console.log("onViewRegionTriggered",)
+        return tookanFunctions.TookanViewRegion(req,res);
+    }
+    );
+
+export const onViewRegionDetails = functions.https.onRequest((req,res)=>{
+        console.log("onViewRegionDetailsTriggered",)
+        return tookanFunctions.TookanViewRegionDetails(req,res);
+    }
+    );
+
+export const onRemoveRegionfromAgent = functions.https.onRequest((req,res)=>{
+        console.log("onRemoveRegionfromAgentTriggered",)
+        return tookanFunctions.TookanRemoveRegionfromAgent(req,res);
+    }
+    );
+
 
                          
