@@ -3,6 +3,7 @@ import {
 } from "../constants";
 import {firestoreInstance} from "../index";
 import * as Tookan from "tookan-api";
+import admin = require("firebase-admin");
 const client = new Tookan.Client({api_key:TOOKAN_API_KEY});
 export async function createTookanTask(snapshot, context) {
     
@@ -56,12 +57,8 @@ export async function createTookanTask(snapshot, context) {
         };
     
         request.send(JSON.stringify(body));
-        
-    
-            }
-
-
-    else{
+    }
+   else{
     
 
     console.log('Triggering Create Tookan task for task id ', taskId, newValue);
@@ -1973,6 +1970,109 @@ async function NewMission(res,missionId): Promise<string> {
     taskRef.set(res.data).then(() => console.log("Creating new merchants for merchant Id:", missionId)).catch(err => console.log("Creating new merchants for merchant id failed for: " + err));
 	return missionId
 }
+export async function CreateMissonCustom(snapshot) {
+    
+    const newValue = snapshot.data();
+    
+
+    console.log('Triggering create new mission for mission Id', newValue);
+
+    const options = {
+        api_key:TOOKAN_API_KEY,
+        dispatched_status:"1",
+        mission_name:"Misson 1",
+        create_task_body:[
+        {
+            access_token:"55631.076225def01849131c152c3017162c431fe4c4fe2c",
+            is_dashboard:1,
+            fleet_id:newValue.fleet_id,
+            timezone:newValue.timezone,
+            has_pickup:newValue.has_pickup,
+            has_delivery:newValue.has_delivery,
+            pickup_delivery_relationship:0,
+            layout_type:newValue.layout_type,
+            team_id:newValue.team_id,
+            geofence:newValue.geofence,
+            auto_assignment:newValue.auto_assignment,
+            tags:newValue.tags,
+            no_of_agents:1,
+            deliveries:[{
+                api_key:TOOKAN_API_KEY,
+                order_id:newValue.order_id,
+                job_description:newValue.job_description,
+                customer_email:newValue.customer_email,
+                customer_username:newValue.customer_username,
+                customer_phone:newValue.customer_phone,
+                customer_address:newValue.customer_address,
+                latitude:newValue.latitude,
+                longitude:newValue.longitude,
+                job_delivery_datetime:newValue.job_delivery_datetime,
+                custom_field_template:newValue.custom_field_template,
+                meta_data:newValue.meta_data,
+                team_id:newValue.team_id,
+                auto_assignment:newValue.auto_assignment,
+                has_pickup:newValue.has_pickup,
+                has_delivery:newValue.has_delivery,
+                layout_type:newValue.layout_type,
+                tracking_link:newValue.tracking_link,
+                timezone:newValue.timezone,
+                fleet_id:newValue.fleet_id,
+                ref_images:newValue.ref_images,
+                notify:newValue.notify,
+                tags:newValue.tags,
+                geofence:newValue.geofence
+
+            }],
+            pickups:[{
+                api_key:TOOKAN_API_KEY,
+                order_id:newValue.order_id,
+                job_description:newValue.job_description,
+                job_pickup_email:newValue.job_pickup_email,
+                job_pickup_name:newValue.job_pickup_name,
+                job_pickup_phone:newValue.job_pickup_phone,
+                job_pickup_address:newValue.job_pickup_address,
+                job_pickup_latitude:newValue.job_pickup_latitude,
+                job_pickup_longitude:newValue.job_pickup_longitude,
+                job_pickup_datetime:newValue.job_pickup_datetime,
+                pickup_custom_field_template:newValue.pickup_custom_field_template,
+                pickup_meta_data:newValue.pickup_meta_data,
+                team_id:newValue.team_id,
+                auto_assignment:newValue.auto_assignment,
+                has_pickup:newValue.has_pickup,
+                has_delivery:newValue.has_delivery,
+                layout_type:newValue.layout_type,
+                tracking_link:newValue.tracking_link,
+                timezone:newValue.timezone,
+                fleet_id:newValue.fleet_id,
+                p_ref_images:newValue.p_ref_images,
+                notify:newValue.notify,
+                tags:newValue.tags,
+                geofence:newValue.geofence
+
+            }],
+            appointments:[{
+                address:newValue.job_pickup_address,
+                name:newValue.job_pickup_name,
+                job_description:newValue.job_description,
+                latitude:newValue.job_pickup_latitude,
+                longitude:newValue.job_pickup_longitude,
+                start_time:newValue.job_pickup_datetime,
+                end_time:newValue.job_delivery_datetime,
+                phone:newValue.job_pickup_phone,
+                template_data:newValue.pickup_custom_field_template,
+                ref_images:newValue.p_ref_images,
+                email:newValue.job_pickup_email
+            }]
+        }],
+        end_date:newValue.job_delivery_datetime,
+        start_date:newValue.job_pickup_datetime
+      };
+    
+    console.log('Creating new mission for options: ', options);
+    return client.createMission(options).then(res => {
+        return NewMission(res,snapshot.id);   
+    })
+}
 export async function missionList(req, res) {
     
     console.log('Triggering view mission for tasks');
@@ -2566,4 +2666,107 @@ export async function TookanonGetAllRelatedTasks(data,context){
     .catch(err => {
         console.log("get all related tasks error =",err)
     })
+}
+export async function setService(snapshot,context){
+    const path1=context.params.messageId
+    const path=context.params.serviceId
+    console.log("Path",path1,path)
+    firestoreInstance.collection("tasks").doc(path1).set({
+        api_key:TOOKAN_API_KEY,
+        order_id:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.order_id,
+        job_description:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.job_description,
+        customer_email:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.customer_email,
+        customer_username:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.customer_username,
+        customer_phone:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.customer_phone,
+        job_pickup_phone:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.job_pickup_phone,
+        job_pickup_name:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.job_pickup_name,
+        job_pickup_email:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.job_pickup_email,
+        job_pickup_latitude:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.job_pickup_latitude,
+        job_pickup_longitude:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.job_pickup_longitude,
+        starting_point:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.starting_point,
+        latitude:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.latitude,
+        longitude:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.longitude,
+       // job_delivery_datetime:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.job_delivery_datetime,
+        custom_field_template:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.custom_field_template,
+        meta_data:[path],
+        team_id:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.team_id,
+        auto_assignment:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.auto_assignment,
+        has_pickup:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.has_pickup,
+        has_delivery:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.has_delivery,
+        pickup_meta_data:[path],
+        pickup_custom_field_template:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.pickup_custom_field_template,
+       // layout_type:(await firestoreInstance.collection(ORDERS).doc(path).collection('tasks').doc(path1).get())?.data()?.layout_type,
+        tracking_link:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.tracking_link,
+        merchant_id: (await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.merchant_id,
+        timezone:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.timezone,
+        fleet_id:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.fleet_id,
+        ref_images:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.ref_images,
+        p_ref_images:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.p_ref_images,
+        notify:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.notify,
+        tags:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.tags,
+        geofence:(await firestoreInstance.collection('services').doc(path).collection('tasks').doc(path1).get())?.data()?.geofence,
+    })
+    .then(async res=> {
+        const newValue=snapshot.data();
+        const fieldValue = admin.firestore.FieldValue; 
+
+        const collectionPath=firestoreInstance.collection(ORDERS).doc('mg_ord_1')
+        collectionPath.set({'tasks':fieldValue.arrayUnion(path1)},{merge:true}).catch(err => {
+        console.log("Tookan editing agents task failed: " + err)
+    }); 
+        firestoreInstance.collection("tasks").doc(path1).update({
+            customer_address:(await firestoreInstance.collection(ORDERS).doc('mg_ord_1').get())?.data()?.where_to,
+            job_pickup_datetime:(await firestoreInstance.collection(ORDERS).doc('mg_ord_1').get())?.data()?.when_pickup,
+            job_delivery_datetime:(await firestoreInstance.collection(ORDERS).doc('mg_ord_1').get())?.data()?.when,
+        }).catch(err => {
+            console.log("Tookan editing agents task failed: " + err)
+        }); 
+        if(newValue.starting_point=='home_office_locations'){
+            firestoreInstance.collection("tasks").doc(path1).update({
+                job_pickup_address:(await firestoreInstance.collection("services").doc(path).collection('home_office_locations').doc("Kkdp7BdceuigpEOK7Lhp").get())?.data()?.address,
+            }).catch(err => {
+                console.log("Tookan editing agents task failed: " + err)
+            }); 
+
+
+        }
+        else if(newValue.starting_point=='agent'){
+            firestoreInstance.collection("tasks").doc(path1).update({
+                job_pickup_address:'',
+            }).catch(err => {
+                console.log("Tookan editing agents task failed: " + err)
+            }); 
+
+
+        }
+        else if(newValue.starting_point=='customer_specified'){
+            firestoreInstance.collection("tasks").doc(path1).update({
+                job_pickup_address:(await firestoreInstance.collection(ORDERS).doc('mg_ord_1').get())?.data()?.where_from,
+            }).catch(err => {
+                console.log("Tookan editing agents task failed: " + err)
+            }); 
+
+
+        }
+        if(newValue.has_pickup==0 && newValue.has_delivery==0){
+            firestoreInstance.collection("tasks").doc(path1).update({
+                layout_type:1
+            }).catch(err => {
+                console.log("Tookan editing agents task failed: " + err)
+            }); 
+           
+        }
+        else{
+            firestoreInstance.collection("tasks").doc(path1).update({
+                layout_type:0
+            }).catch(err => {
+                console.log("Tookan editing agents task failed: " + err)
+            }); 
+        }
+        console.log("Document successfully written!");
+    })
+    .catch(function(error) {
+        console.error("Error writing document: ", error);
+    });
+
 }

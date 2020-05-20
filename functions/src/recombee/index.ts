@@ -303,20 +303,50 @@ async function createRecombeeData(snapshot, context) {
             }) 
 
          }
-         export async function RecommendItemsToItem(snapshot,context){
-            const rqs=recombee.requests;
-            const newvalue=snapshot.data();
-            const options={
-               target_user_key:newvalue.target_user_key,
-               service_key:newvalue.service_key
+         export async function RecommendItemsToItem(req,res){
+             const rqs=recombee.requests;
+
+            const category=(await firestoreInstance.collection('users').doc(req.body.user_key).get())?.data()?.recommended_categories;
+           
+            for (let i in category) {
+               
+               let cat=(await firestoreInstance.collection('users').doc(req.body.user_key).get())?.data()?.recommended_categories[i];
+               //console.log(cat)
+            
+                client.send(new rqs.RecommendItemsToItem(req.body.item_id,req.body.user_key,5,
+               {
+                  cascadeCreate:true,
+                  scenario: 'ItemsToItem',
+                  returnProperties:true,
+                  includedProperties:["service_name","available_quantity","parent_category_key"],
+                  logic: 'recombee:default',
+                  //filter:"\"0\" in 'available_quantity'",
+                  filter:"\""+cat+"\" in 'parent_category_key'",
+                  booster:"if 'service_name' == \"Laundry\" then 2 else (if 'service_name' ==\"Shave\" then 1.5 else 1)",
+                 //booster:"if  $timewhichadded$> now() - ($number_of_days$ * 24 * 60 * 60)  then 2 else 1",
+                  userImpact:0.0,
+                  diversity:'0.0',
+                  minRelevance:'medium',
+                  //rotationRate:'0.2',
+                  rotationTime:'7200.0'
                }
-            return client.send(new rqs.RecommendItemsToItem(options.service_key,options.target_user_key,5)).catch((error) => {
-               console.log('Error sending message:', error);
-            return false;
-               }) 
+               )).then(res1 => {
+                  console.log("Recomended services for",res1.recomms[0].values.parent_category_key)
+                  /*for (let j in res1.recomms) {
+                  console.log(res1.recomms[j].id)
+                  }*/
+                  console.log(cat,":",res1)
+                  res.status(200).send(cat+" "+JSON.stringify(res1.recomms));
+                 
    
+              }).catch((error) => {
+                  console.log('Error sending message:', error);
+              // return false;
+                  }) 
+               
+            }
          }
-         export async function RecommendUsersToItem(snapshot,context){
+       export async function RecommendUsersToItem(snapshot,context){
             const rqs=recombee.requests;
             const newvalue=snapshot.data();
             const options={

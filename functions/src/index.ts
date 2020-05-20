@@ -233,6 +233,8 @@ export const onGetFleetWalletTransaction = functions.https.onRequest((req,res)=>
         console.log('onGetFleetWalletTransactionTriggered',)
         return tookanFunctions.GetFleetWalletTransaction(req,res);
     }); 
+   
+
 
 export const onAddCustomer = functions.firestore
     .document('users/{customerId}')
@@ -397,18 +399,22 @@ export const onDeleteMission = functions.firestore
  });
 
  export const onCreateService=functions.firestore
-        .document('services/{serviceId}')
+        .document('services/{serviceId}/{messageCollectionId}/{messageId}')
         .onCreate((snapshot,context)=>{
-            const msgId = context.params.serviceId;
-            const msgValue = snapshot.data();
+           // const msgId = context.params.serviceId;
+            //const msgValue = snapshot.data();
+            console.log('onCreateServiceTriggered',)
+           return tookanFunctions.setService(snapshot,context)
+           /*.then(res => {
            console.log('onCreateServiceTriggered',)
-           return algoliaFunctions.createAlgoliaService(snapshot,context).then(res => {
+           return algoliaFunctions.createAlgoliaService(snapshot,context)
+        }).then(res => {
             console.log("onCreateServiceTriggered",)
         return CmFunctions.createMsgJob(snapshot,context,msgId,msgValue,"services_text_moderator_result","services_text_moderator_job_id",'service');
             }).then(res => {
             console.log('onCreateRecombeeItemTriggered')
             return recombeeFunctions.createRecombeeItem(snapshot,context);   
-        })
+        })*/
             });
  export const onDeleteService=functions.firestore
        .document('services/{serviceId}')
@@ -518,12 +524,9 @@ export const onUpdateJob = functions.firestore
 
                                     })
                                 });
-    export const RecommendItemsToItem=functions.https.onCall((data,context)=>{
+    export const RecommendItemsToItem=functions.https.onRequest((req,res)=>{
                             console.log('RecommendItemsToItemTriggered')
-                            return recombeeFunctions.RecommendItemsToItem(data,context).then(res=>{
-                                console.log(res);
-
-                                    })
+                            return recombeeFunctions.RecommendItemsToItem(req,res)
                                 });
     export const RecommendUsersToItem=functions.https.onCall((data,context)=>{
                             console.log('RecommendUsersToItemTriggered')
@@ -558,6 +561,29 @@ export const onUpdateJob = functions.firestore
     })
     export const onAutoAllocationFailed = functions.https.onRequest((req,res) => {
         return tookanFunctions.UpdateJobStatus(req,res);
+    })
+    export const getTask = functions.https.onRequest((req,res) => {
+        firestoreInstance.collection("tasks").get().then(function(querySnapshot) {
+            querySnapshot.forEach(function(doc) {
+                console.log(doc.id, " => ", doc.data());
+               if(doc.data().customer_address !== undefined && doc.data().team_id !== undefined && doc.data().fleet_id !== undefined && doc.data().tags !== undefined && doc.data().job_pickup_address !== undefined){
+               firestoreInstance.collection("tasks").where('customer_address','==',doc.data().customer_address).where('team_id','==',doc.data().team_id).where('fleet_id','==',doc.data().fleet_id).where('tags','==',doc.data().tags).where('job_pickup_address','==',doc.data().job_pickup_address).get().then(function(querySnapshot1) {
+                querySnapshot1.forEach(function(doc1) {
+                    if(doc1.id != doc.id){
+                    console.log("ooooo")
+                    console.log(doc1.id, " => ", doc1.data());
+                    tookanFunctions.CreateMissonCustom(doc1).catch(err => {
+                        console.log("Tookan editing agents task failed: " + err)
+                    }); 
+                }});
+            }).catch(err => {
+                console.log("Tookan editing agents task failed: " + err)
+            }); 
+               }
+            });
+        }).catch(err => {
+            console.log("Tookan editing agents task failed: " + err)
+        }); 
     })
 
  export const onDeleteTst=functions.firestore
@@ -765,6 +791,154 @@ export const onRemoveRegionfromAgent = functions.https.onRequest((req,res)=>{
         return tookanFunctions.TookanRemoveRegionfromAgent(req,res);
     }
     );
+export const onProviderAdd = functions.firestore
+    .document('providers/{providerId}')
+    .onCreate((snapshot,context) => {
+        console.log('onProviderAddTriggered',)
+        const providerId = context.params.providerId;
+        const newValue = snapshot.data();
+        const date = new Date();
+        const time = date.getTime() ;
+        const area_serviced_geofence = [-60.79543,34.04843]
+        const images = ["https://media.publit.io/file/Screenshot_20200504-124016.png","https://media.publit.io/file/Screenshot_20200505-213625.png", "https://media.publit.io/file/1641b604-8686-496f-a50d-aec85f4f162d6809517598904074481.jpg", "https://media.publit.io/file/Screenshot_20200505-225632.png"]
+        const options = {
+            add_agent:"ag_2",
+            add_region:38.17,  
+            add_task:"",
+            add_team:"team_2",
+            area_serviced_geofence:area_serviced_geofence,
+            business_category_id:"cat_1",
+            city_id:0,
+            commission_percentage: 4,
+            commission_type:null,
+            company_address:"Urban Plates",
+            company_latitude:-121.28,
+            company_longitude:38.17,
+            country_code:91,
+            creation_datetime:time.toString(),
+            delivery_charges:24,
+            description:"We offer variety of Steaks and Salads",
+            device_token:null,
+            discount_and_other_info:"discount on amount more than $20 and free delivery",
+            display_address:"22nd street, Thousand oaks",
+            dynamic_delivery_charges:22,
+            edit_fleet_availability:1,
+            email_verification_token:1,
+            enable_merchant_delivery_charges:0,
+            first_name:newValue?.last_name,
+            introduction:"healthiest salads with rooftop view.",
+            is_active:1,
+            is_blocked:0,
+            is_deleted:0,
+            is_verified:1,
+            images:images,
+            key_highlights:"[{icon: check_circle_outline, text:\"Unmatched taste\"},{icon: check_circle_outline, text: \"text 2\"}]",
+            last_name: newValue?.last_name,
+            last_review_rating:4.6,
+            logo_url:"https://logo.clearbit.com/urbanplates.com",
+            long_description:"We offer variety of Steaks and Salads",
+            merchant_key:"m_2",
+            merchant_permission:"[{1,0,1,1,0,0,1,1,0,1}]",
+            multi_image_url:"https://logo.clearbit.com/urbanplates.com",
+            new_email:"xyz@gmail.com",
+            number_of_steps_left: 1,
+            open_close_busy:0,
+            partial_open_close_text:1,
+            phone: 9852365412,
+            provider_key:"provider_food_2",
+            provider_name:"Urban Plates",
+            reviews_key:"Pr8520",
+            schedule_type: "",
+            seo_fields:null,
+            serving_distance:3,
+            setup_level:"gold",
+            sponsorship_is_active:null,
+            state_id: 0,
+            store_rating:5,
+            storepage_slug:"Priyanshi",
+            story_key:"St_21",
+            stripe_connect_country:"usa",
+            stripe_connect_currency:"usd",
+            "template_name: Order details":"",
+            subtitles:["Subtitle1","Subtitle2"],
+            total_earnings:99,
+            total_ratings_count:215,
+            total_ratings_sum:1075,
+            total_review_count:315,
+            update_datetime:"2019-09-18T05:03:29.000Z",
+            user_key:"Pr8520",
+            verification_status: 0,
+            view_agent:"thomas",
+            view_fleet_availability:1,
+            view_region:-121.28,
+            view_task:"",
+            view_team:"[ag_5,ag_9,ag_25]",
+
+ }
+        return firestoreInstance.collection("template_provider").doc(providerId).set(options).then(() =>{
+            console.log("template updated :",providerId)
+        }).catch(err => {
+            console.log("error occured",err)
+        })
+    });
+export const onServiceAdd = functions.firestore
+    .document('services/{serviceId}')
+    .onCreate((snapshot,context) => {
+        console.log('onserviceAddTriggered',)
+        const serviceId = context.params.serviceId;
+        const newValue = snapshot.data();
+        const availability = ["Morning","Afternoon","Evening","Night","Late Night","Early Morning"]
+        const customization = ["",""];
+        const date = new Date();
+        const time =date.toISOString();
+        const sub_type = ["sub_service_2"] 
+        const options = {
+            availability : availability,
+            available_quantity : 0,
+            cutomization:customization,
+            category_key : "cat_27",
+            created_at : time,
+            currency : "usd",
+            has_delivery : "0",
+            has_pickup : "1",
+            inventory_enabled : "0",
+            is_check_box : "0",
+            is_multiple : "1",
+            is_side_order : "0",
+            is_auto_assign:"0",
+            is_default:"0",
+            is_appointments_only:"0",
+            latitude : "",
+            layout_type : "0",
+            logo_url : "",
+            longitude : "",
+            maximum_selection : "2",
+            minimum_quantity : "0",
+            minimum_selection : "1",
+            multi_img_url : "",
+            offer_takeout_curberside_droppin:"0",
+            office_locations:["office_location_id","office_2_location"],
+            other_tasks:"team_1",
+            percentage_match:"98",
+            pickup_delivery_info:['info1'],
+            parent_category_key : "cat_1",
+            price : newValue?.price,
+            price_per:"item",
+            provider_key : newValue?.provider_key,
+            rating : "3.8",
+            repeat_discounts:"0",
+            service_description : "We offer different stylish hairstyles",
+            service_name : newValue?.service_name,
+            service_time : "30",
+            sub_type : sub_type,
+            unit : "service"
+        }
+        return firestoreInstance.collection("template").doc(serviceId).set(options).then(() =>{
+            console.log("template updated :",serviceId)
+        }).catch(err => {
+            console.log("error occured",err)
+        })
+    });
 
 
                          
