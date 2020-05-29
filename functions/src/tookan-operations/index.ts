@@ -2168,7 +2168,7 @@ export async function cancelOrder(snapshot, context) {
     const path=context.params.orderId
     console.log("Orders cancelled refund initiated for",path)
 }
-export async function setOrder(snapshot, context) {
+/*export async function setOrder(snapshot, context) {
         const path1=context.params.messageId
         const path=context.params.orderId
         console.log("Path",path1,path)
@@ -2206,6 +2206,117 @@ export async function setOrder(snapshot, context) {
             console.error("Error writing document: ", error);
         });
 
+}*/
+export async function setOrder(snapshot, context) {
+    const path2=context.params.messageId
+    const path1=context.params.messageCollectionId
+    const path=context.params.orderId
+    const tmp=(await firestoreInstance.collection(ORDERS).doc(path).collection(path1).doc(path2).get())?.data()?.service_key
+  firestoreInstance.collection("services").doc(tmp).collection('tasks').get().then(function(querySnapshot) {
+                querySnapshot.forEach(async function(docRef) {
+                    console.log(docRef.id)
+     firestoreInstance.collection("tasks").doc(docRef.id).set({
+            api_key:TOOKAN_API_KEY,
+            order_id:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.order_id,
+            job_description:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.job_description,
+            customer_email:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.customer_email,
+            customer_username:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.customer_username,
+            customer_phone:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.customer_phone,
+            job_pickup_phone:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.job_pickup_phone,
+            job_pickup_name:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.job_pickup_name,
+            job_pickup_email:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.job_pickup_email,
+            job_pickup_latitude:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.job_pickup_latitude,
+            job_pickup_longitude:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.job_pickup_longitude,
+            starting_point:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.starting_point,
+            latitude:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.latitude,
+            longitude:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.longitude,
+            custom_field_template:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.custom_field_template,
+            meta_data:[tmp],
+            team_id:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.team_id,
+            auto_assignment:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.auto_assignment,
+            has_pickup:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.has_pickup,
+            has_delivery:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.has_delivery,
+            pickup_meta_data:[tmp],
+            pickup_custom_field_template:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.pickup_custom_field_template,
+            tracking_link:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.tracking_link,
+            merchant_id: (await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.merchant_id,
+            timezone:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.timezone,
+            fleet_id:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.fleet_id,
+            ref_images:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.ref_images,
+            p_ref_images:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.p_ref_images,
+            notify:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.notify,
+            tags:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.tags,
+            geofence:(await firestoreInstance.collection('services').doc(tmp).collection('tasks').doc(docRef.id).get())?.data()?.geofence,
+        })
+        .then(async res=> {
+            const newValue=snapshot.data();
+            const fieldValue = admin.firestore.FieldValue; 
+    
+            const collectionPath=firestoreInstance.collection(ORDERS).doc(path)
+            collectionPath.set({'tasks':fieldValue.arrayUnion(docRef.id)},{merge:true}).catch(err => {
+            console.log("Tookan editing agents task failed: " + err)
+        }); 
+            firestoreInstance.collection("tasks").doc(docRef.id).update({
+                customer_address:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.where_to,
+                job_pickup_datetime:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.when_pickup,
+                job_delivery_datetime:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.when,
+            }).catch(err => {
+                console.log("Tookan editing agents task failed: " + err)
+            }); 
+            if(newValue.starting_point=='home_office_locations'){
+                firestoreInstance.collection("tasks").doc(docRef.id).update({
+                    job_pickup_address:(await firestoreInstance.collection("services").doc(tmp).collection('home_office_locations').doc("Kkdp7BdceuigpEOK7Lhp").get())?.data()?.address,
+                }).catch(err => {
+                    console.log("Tookan editing agents task failed: " + err)
+                }); 
+    
+    
+            }
+            else if(newValue.starting_point=='agent'){
+                firestoreInstance.collection("tasks").doc(docRef.id).update({
+                    job_pickup_address:'',
+                }).catch(err => {
+                    console.log("Tookan editing agents task failed: " + err)
+                }); 
+    
+    
+            }
+            else if(newValue.starting_point=='customer_specified'){
+                firestoreInstance.collection("tasks").doc(docRef.id).update({
+                    job_pickup_address:(await firestoreInstance.collection(ORDERS).doc(path).get())?.data()?.where_from,
+                }).catch(err => {
+                    console.log("Tookan editing agents task failed: " + err)
+                }); 
+    
+    
+            }
+            if(newValue.has_pickup==0 && newValue.has_delivery==0){
+                firestoreInstance.collection("tasks").doc(docRef.id).update({
+                    layout_type:1
+                }).catch(err => {
+                    console.log("Tookan editing agents task failed: " + err)
+                }); 
+               
+            }
+            else{
+                firestoreInstance.collection("tasks").doc(docRef.id).update({
+                    layout_type:0
+                }).catch(err => {
+                    console.log("Tookan editing agents task failed: " + err)
+                }); 
+            }
+            console.log("Document successfully written!");
+        })
+        .catch(function(error) {
+            console.error("Error writing document: ", error);
+        });
+        
+    });
+})
+.catch(function(error) {
+    console.log("Error getting documents: ", error);
+});  
+    
 }
 export async function CreateTookanManager(snapshot, context) {
     const managerId = context.params.managerId;

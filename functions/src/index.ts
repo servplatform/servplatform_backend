@@ -401,20 +401,20 @@ export const onDeleteMission = functions.firestore
  export const onCreateService=functions.firestore
         .document('services/{serviceId}/{messageCollectionId}/{messageId}')
         .onCreate((snapshot,context)=>{
-           // const msgId = context.params.serviceId;
-            //const msgValue = snapshot.data();
-            console.log('onCreateServiceTriggered',)
-           return tookanFunctions.setService(snapshot,context)
-           /*.then(res => {
+            const msgId = context.params.serviceId;
+            const msgValue = snapshot.data();
+           /* console.log('onCreateServiceTriggered',)
+           return tookanFunctions.setService(snapshot,context)*/
+          // .then(res => {
            console.log('onCreateServiceTriggered',)
            return algoliaFunctions.createAlgoliaService(snapshot,context)
-        }).then(res => {
+        .then(res => {
             console.log("onCreateServiceTriggered",)
         return CmFunctions.createMsgJob(snapshot,context,msgId,msgValue,"services_text_moderator_result","services_text_moderator_job_id",'service');
             }).then(res => {
             console.log('onCreateRecombeeItemTriggered')
             return recombeeFunctions.createRecombeeItem(snapshot,context);   
-        })*/
+        })
             });
  export const onDeleteService=functions.firestore
        .document('services/{serviceId}')
